@@ -1,65 +1,6 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Isekai Realms: D&D Chronicles</title>
-    <!-- Tailwind CSS for mobile portrait layout -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; font-size: 16px; }
-    </style>
-</head>
-<body class="bg-slate-950 text-slate-100 flex justify-center items-center min-h-screen p-4 select-none">
 
-    <!-- Mobile Screen Frame Container -->
-    <div class="w-full max-w-md bg-slate-900 border-2 border-slate-800 rounded-2xl shadow-2xl flex flex-col h-[90vh] overflow-hidden">
-        
-        <!-- Game Header / HUD -->
-        <header class="bg-slate-950 px-6 py-4 border-b border-slate-800 flex justify-between items-center shrink-0">
-            <h1 class="text-xs font-bold tracking-widest text-indigo-400 uppercase font-mono" id="hud-act">Act I: Awakening</h1>
-            <div id="hud-stats" class="text-xs text-slate-400 hidden">
-                <span id="hud-name" class="font-semibold text-slate-200"></span> | 
-                <span id="hud-chapter" class="text-amber-400 font-semibold">Ch 1/100</span>
-            </div>
-        </header>
 
-        <!-- Dynamic Game Content Viewport -->
-        <main id="game-viewport" class="flex-1 overflow-y-auto p-6 flex flex-col justify-between space-y-6">
-            <!-- Content Injected Dynamically -->
-        </main>
-        
-    </div>
-
-    <script>
-        // Core Game State Model with Integrated Character Sheet
-        let gameState = {
-            subType: '',       
-            name: '',
-            gender: '',        
-            partnerPref: '',   
-            currentChapter: 1, 
-            romanceScore: 0,
-            stats: { str: 5, dex: 5, int: 5, wis: 5 }
-        };
-
-        const view = document.getElementById('game-viewport');
-        const hud = document.getElementById('hud-stats');
-        const hudAct = document.getElementById('hud-act');
-
-        function checkExistingSave() {
-            const localData = localStorage.getItem('isekai_chronicles_save');
-            return localData ? JSON.parse(localData) : null;
-        }
-
-        function isMainStat(stat) {
-            const type = gameState.subType;
-            if (type === 'Knight') return (stat === 'str' || stat === 'dex');
-            if (type === 'Summoner') return (stat === 'int' || stat === 'wis');
-            if (type === 'Ranger') return (stat === 'dex' || stat === 'wis');
-            if (type === 'Assassin') return (stat === 'dex' || stat === 'int');
-            return false;
         }
 
         function getActDifficultyMod(ch) {
