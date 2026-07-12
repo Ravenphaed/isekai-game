@@ -161,7 +161,7 @@
         }
 
         function initCharacterCreation() {
-            // FIX: Escaped string variables inside onclick array bindings to clear DOM scope blocks
+            // FIX: Removed inner script literal collision blocks using clean backtick nesting
             view.innerHTML = `
                 <div class="flex-1 flex flex-col justify-center space-y-5">
                     <div class="text-center space-y-1">
@@ -173,7 +173,7 @@
                         <input id="char-name" type="text" placeholder="Enter name..." class="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white font-medium focus:outline-none focus:border-indigo-500 text-base">
                     </div>
                     <div class="space-y-1">
-                        <label class="block text-xs font-semibold tracking-wider text-slate-400 uppercase">Your Alignment</label>
+                        <label class="block text-xs font-semibold tracking-wider text-slate-400 uppercase">Are you Male, Female, or Non-Binary?</label>
                         <div class="grid grid-cols-3 gap-2">
                             <button onclick="setStateVar(this, 'gender', 'Male', 'g-btn')" class="g-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all">Male</button>
                             <button onclick="setStateVar(this, 'gender', 'Female', 'g-btn')" class="g-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all">Female</button>
@@ -336,7 +336,7 @@
                     options: [
                         { text: "🍎 [Wisdom Check] Feed nearby berries to local wildlife to clear a crawling path", stat: "wis", romance: 1, textOutcome: "The critters pack together, chewing rapidly through the root systems to clear a narrow crawling gap for you." },
                         { text: "👟 [Dexterity Check] Use nearby low boulders to vault cleanly over the wall", stat: "dex", romance: 0, textOutcome: "You execute a clean aerial leap, clearing the thorns completely and landing safely on the opposite path." },
-                        { text: "💀 [DEADLY STR Check] Try to violently slam your bare hands forward to shatter the vines", stat: "str", romance: -2, isDeadly: true, res: "The toxic needles puncture your skin instantly, overloading your nervous system matrix and dropping your vital signs to zero." }
+                        { text: "💀 [DEADLY STR Check] Try to violently slam your bare hands forward to shatter the vines", stat: "str", romance: -2, isDeadly: true, textOutcome: "The toxic needles puncture your skin instantly, overloading your nervous system matrix and dropping your vital signs to zero." }
                     ]
                 };
             }
@@ -437,7 +437,7 @@
             } else {
                 resultTitle = `<span class="text-rose-400 font-bold">❌ CHECK FAILURE (Rolled ${dieRoll} + Mod ${difficultyMod} = ${totalRollResult} vs Stat ${playerStatValue})</span>`;
                 if (isDeadly) {
-                    resultBody = `${outcomeText} Your campaign timeline drops to zero under the weight of the failed roll check.`;
+                    resultBody = `Your attributes failed to withstand the penalty scope. ${outcomeText}`;
                     triggerGameOver = true;
                 } else {
                     resultBody = `Your timing falters under stress. You clear the encounter clumsily, but your failure leaves your partner exposed to structural danger.`;
@@ -487,6 +487,7 @@
         function renderBonusStatScreen() {
             updateHUD();
             
+            // Build button options checking explicitly for non-main stat eligibility fields
             const statButtons = ['str', 'dex', 'int', 'wis'].map(s => {
                 const mainLabel = isMainStat(s) ? "<span class='text-[9px] bg-indigo-950 text-indigo-400 px-1.5 py-0.5 rounded ml-2 font-bold'>MAIN</span>" : "";
                 const buttonDisabled = isMainStat(s) ? "disabled class='w-full py-3 px-4 bg-slate-950 text-slate-600 border border-slate-900 text-left rounded-xl flex justify-between items-center cursor-not-allowed'" : `onclick="applyBonusStatPoint('${s}')" class="w-full py-3 px-4 bg-amber-950/40 hover:bg-amber-900/60 border border-amber-500/30 hover:border-amber-400 text-left text-amber-100 font-medium rounded-xl transition-all flex justify-between items-center active:scale-98"`;
