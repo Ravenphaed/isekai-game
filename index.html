@@ -1,14 +1,73 @@
 <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Isekai Realms: D&D Chronicles</title>
+    <!-- Tailwind CSS for mobile portrait layout -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght=400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; font-size: 16px; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 flex justify-center items-center min-h-screen p-4 select-none">
 
+    <!-- Mobile Screen Frame Container -->
+    <div class="w-full max-w-md bg-slate-900 border-2 border-slate-800 rounded-2xl shadow-2xl flex flex-col h-[90vh] overflow-hidden">
+        
+        <!-- Game Header / HUD -->
+        <header class="bg-slate-950 px-6 py-4 border-b border-slate-800 flex justify-between items-center shrink-0">
+            <h1 class="text-xs font-bold tracking-widest text-indigo-400 uppercase font-mono" id="hud-act">Act I: Awakening</h1>
+            <div id="hud-stats" class="text-xs text-slate-400 hidden">
+                <span id="hud-name" class="font-semibold text-slate-200"></span> | 
+                <span id="hud-chapter" class="text-amber-400 font-semibold">Ch 1/100</span>
+            </div>
+        </header>
 
+        <!-- Dynamic Game Content Viewport -->
+        <main id="game-viewport" class="flex-1 overflow-y-auto p-6 flex flex-col justify-between space-y-6">
+            <!-- Content Injected Dynamically -->
+        </main>
+        
+    </div>
+
+    <script>
+        // Core Game State Model with Integrated Character Sheet
+        let gameState = {
+            subType: '',       
+            name: '',
+            gender: '',        
+            partnerPref: '',   
+            currentChapter: 1, 
+            romanceScore: 0,
+            stats: { str: 5, dex: 5, int: 5, wis: 5 }
+        };
+
+        const view = document.getElementById('game-viewport');
+        const hud = document.getElementById('hud-stats');
+        const hudAct = document.getElementById('hud-act');
+
+        function checkExistingSave() {
+            const localData = localStorage.getItem('isekai_chronicles_save');
+            return localData ? JSON.parse(localData) : null;
+        }
+
+        function isMainStat(stat) {
+            const type = gameState.subType;
+            if (type === 'Knight') return (stat === 'str' || stat === 'dex');
+            if (type === 'Summoner') return (stat === 'int' || stat === 'wis');
+            if (type === 'Ranger') return (stat === 'dex' || stat === 'wis');
+            if (type === 'Assassin') return (stat === 'dex' || stat === 'int');
+            return false;
         }
 
         function getActDifficultyMod(ch) {
-            if (ch <= 20) return 0;  // Act 1 baseline targets
-            if (ch <= 40) return 3;  // Act 2 scaling (+3 difficulty step)
-            if (ch <= 60) return 6;  // Act 3 scaling
-            if (ch <= 80) return 9;  // Act 4 scaling
-            return 12;               // Act 5 Apex scaling
+            if (ch <= 20) return 0;  
+            if (ch <= 40) return 3;  
+            if (ch <= 60) return 6;  
+            if (ch <= 80) return 9;  
+            return 12;               
         }
 
         function updateHUD() {
@@ -102,6 +161,7 @@
         }
 
         function initCharacterCreation() {
+            // FIX: Escaped string variables inside onclick array bindings to clear DOM scope blocks
             view.innerHTML = `
                 <div class="flex-1 flex flex-col justify-center space-y-5">
                     <div class="text-center space-y-1">
@@ -135,6 +195,28 @@
             `;
         }
 
+        function setStateVar(btnElement, variable, value, groupClass) {
+            document.querySelectorAll('.' + groupClass).forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-500');
+                btn.classList.add('bg-slate-800', 'text-slate-300', 'border-slate-700');
+            });
+            btnElement.classList.remove('bg-slate-800', 'text-slate-300', 'border-slate-700');
+            btnElement.classList.add('bg-indigo-600', 'text-white', 'border-indigo-500');
+            gameState[variable] = value;
+        }
+
+        function submitCharacter() {
+            const inputName = document.getElementById('char-name').value.trim();
+            if (!inputName) return alert('A name is strictly required.');
+            if (!gameState.gender) return alert('Please select your identity profile.');
+            if (!gameState.partnerPref) return alert('Please select your companion preference.');
+            gameState.name = inputName;
+            
+            localStorage.removeItem('isekai_chronicles_save');
+            updateHUD();
+            renderStoryLoop();
+        }
+
         function recompileSaveState() {
             localStorage.setItem('isekai_chronicles_save', JSON.stringify(gameState));
         }
@@ -146,7 +228,6 @@
             return { name: 'Eldrin', role: 'the Rogue High Elf Mage' }; 
         }
 
-        // Pure D&D Attribute Roadblocks Database
         const actThemes = {
             1: {
                 name: "Act I: The Awakening & The Wilds",
@@ -154,7 +235,7 @@
                     { t: "A massive, thick briar patch tangled with glowing purple toxic thorns completely chokes off the overgrown path ahead.",
                       o: [
                           { text: "👁️ [Wisdom Check] Quietly study the organic grid patterns to unweave a path vector", stat: "wis", r: 1, res: "Your focus maps out a clean crawl-line. You slide through the brush cleanly without triggering thorn traps." },
-                          { text: "👟 [Dexterity Check] Attempt a series of swift leaps across the surrounding high rocks", stat: "dex", r: 0, res: "You vault the boulders cleanly, dropping safely down on the opposite path." },
+                          { text: "👟 [Dexterity Check] Attempt a series of swift vaults across the surrounding high rocks", stat: "dex", r: 0, res: "You vault the boulders cleanly, dropping safely down on the opposite path." },
                           { text: "💀 [DEADLY STR Check] Try to violently slam your bare hands forward to shatter the vines", stat: "str", r: -2, isDeadly: true, res: "The toxic needles puncture your skin instantly, overloading your nervous system matrix and dropping your vital signs to zero." }
                       ]},
                     { t: "The mountain trail terminates at a fractured wooden suspension bridge. The support lines are frayed down to a single rotten wire strand over a bottomless void canyon.",
@@ -228,10 +309,16 @@
             }
         };
 
-        // Comprehensive Master Story Router Engine
         function getChapterData(ch, partner) {
             const currentAct = getActiveActTheme(ch);
             
+            const standardCombatOptions = [
+                { text: "⚔️ [Dexterity Check] Coordinate a swift flanking assault combo", stat: "dex", romance: 1, textOutcome: "You time your advance perfectly, flashing past the target's armor line to expose a clean opening." },
+                { text: "🛡️ [Strength Check] Dig your boots in and draw the combat pressure onto your stance", stat: "str", romance: 0, textOutcome: "You slam your weapon against your armor, forcing the enemy focus entirely onto your defensive position." },
+                { text: "🏃 [Wisdom Check] Pull back into the immediate brush to target a vulnerability", stat: "wis", romance: 1, textOutcome: "You duck behind cover, locating a major tactical exploit path to call out to your partner." },
+                { text: "😡 [Charisma Check] Charge forward screaming a chaotic battle challenge", stat: "str", romance: -1, textOutcome: "Your wild assault breaks the formation. You deal damage, but leave your companion unprotected." }
+            ];
+
             if (ch === 1) {
                 return {
                     desc: `You gasp for air, collapsing onto a bed of damp earth and pine needles. The blinding light of an intricate summoning circle fades on the ground beneath you. Your head throbs, and your clothes are completely out of place here. Reaching into your pocket, you pull out your Earth cell phone—there is zero service, but its offline screen flickers to life, strangely vibrating in sync with the ambient energy. As you stand up trying to process your new body's **${gameState.subType}** abilities, a branch snaps. ${partner.name}, ${partner.role}, drops from the canopy above with a weapon drawn. "State your name and business, traveler! I saw the summoning rift from the valley!"`,
@@ -243,11 +330,47 @@
                 };
             }
             
+            if (ch === 2) {
+                return {
+                    desc: `Leaving the glowing ash of the summoning site behind, you sprint alongside ${partner.name}. The canopy overhead slams shut, casting the forest into deep twilight. Suddenly, the path ends at a massive briar patch tangled with thick, glowing purple thorns that hum with trace amounts of poison mana. You have to pass.`,
+                    options: [
+                        { text: "🍎 [Wisdom Check] Feed nearby berries to local wildlife to clear a crawling path", stat: "wis", romance: 1, textOutcome: "The critters pack together, chewing rapidly through the root systems to clear a narrow crawling gap for you." },
+                        { text: "👟 [Dexterity Check] Use nearby low boulders to vault cleanly over the wall", stat: "dex", romance: 0, textOutcome: "You execute a clean aerial leap, clearing the thorns completely and landing safely on the opposite path." },
+                        { text: "💀 [DEADLY STR Check] Try to violently slam your bare hands forward to shatter the vines", stat: "str", romance: -2, isDeadly: true, res: "The toxic needles puncture your skin instantly, overloading your nervous system matrix and dropping your vital signs to zero." }
+                    ]
+                };
+            }
+            
+            if (ch === 3) {
+                return {
+                    desc: `Breaching the thickets, the path breaks into a rocky, uphill ravine. The sound of snarling echoes from the dense trees to your left. A hunting pack of feral dire-wolves sweeps down from the ridge line, red eyes locked onto your strange planar scent!`,
+                    options: standardCombatOptions
+                };
+            }
+            
+            if (ch === 4) {
+                return {
+                    desc: `With the wolves scattered, you push higher up the ridge line. The path turns treacherous as you reach a broken wooden suspension bridge spanning a yawning canyon gap. The support ropes are frayed to the final thread, swaying over an absolute drop.`,
+                    options: [
+                        { text: "🔍 [Intelligence Check] Analyze the line stress to step precisely on support joints", stat: "int", romance: 1, textOutcome: "You map out a safe stepping route, navigating the swaying structure safely." },
+                        { text: "🏃 [Dexterity Check] Sprint across at top speed before the planks can detach", stat: "dex", romance: 0, textOutcome: "You sprint hard. Planks splinter into the abyss behind your boots, but your forward momentum carries you across." },
+                        { text: "💀 [DEADLY WIS Check] Deliberately push your companion forward into the drop lines to test the bridge weight", stat: "wis", romance: -5, isDeadly: true, textOutcome: "The main frame cables snap instantly under your betrayal. Your companion falls into the void, leaving you isolated as the dimensional rift drops." }
+                    ]
+                };
+            }
+            
+            if (ch === 5) {
+                return {
+                    desc: `Safely across the canyon, the trail dips down into a dense, muddy marshland. Deep bubbles gurgle in the black mire nearby. Without warning, a towering swamp horror—a mass of rotted roots and glowing eyes—surges out of the mud!`,
+                    options: standardCombatOptions
+                };
+            }
+
             if (ch === 99) {
                 return {
                     desc: `The High Demon Lord crashes to the floor, turning to ash! However, his dying curse triggers a catastrophic structural collapse of the obsidian throne room. A massive falling stone column is plummeting straight toward an unconscious, exhausted ${partner.name}! Simultaneously, your phone flashes with a blinding portal signal—your one chance to warp safely back to Earth is active right now.`,
                     options: [
-                        { text: "💪 [Strength Sacrifice Check] Dive over their frame, lock your shields, and fully tank the falling debris!", stat: "str", romance: 10, textOutcome: "Without a single thought for yourself, you shield them. The masonry smashes down, shattering your armor but leaving them completely untouched." },
+                        { text: "💪 [Strength Sacrifice Check] Dive over their frame, lock your shields, and fully tank the falling debris!", stat: "str", romance: 10, textOutcome: "Without a single thought for yourself, you shield them. The masonry smashes down, shattering your armor but keeping them completely untouched." },
                         { text: "👟 [Dexterity Evade Check] Grab them by the pack and execute a frantic rolling slide toward the exit archways", stat: "dex", romance: 0, textOutcome: "You haul their weight across the tiling just as the column crashes onto the exact space you occupied a second prior." },
                         { text: "📜 [Intelligence Escape Check] Abandon the realm and dive directly into the phone portal to secure your escape home", stat: "int", romance: -5, textOutcome: "Driven by survival instinct, you leap into the light. The dimensional gate snaps shut, leaving the fantasy world behind forever." }
                     ]
@@ -257,7 +380,7 @@
             if (ch === 100) {
                 return {
                     desc: `The cataclysm settles completely. The dust clears over the ruined throne room floor. The dark rifts are silent, and the realm has been decisively saved. Standing among the remnants of the final battle line, you turn toward ${partner.name} to face the final calculation of your timeline journey.`,
-                    options: [{ text: "🌌 Complete the parameters and witness your final fate.", stat: "int", romance: 0, textOutcome: "The calculations compile..." }]
+                    options: [{ text: "🌌 Complete the parameters and witness your final fate.", stat: "int", romance: 0, textOutcome: "The timeline calculations compile..." }]
                 };
             }
 
@@ -278,16 +401,16 @@
             if (isExploration) {
                 const obs = currentAct.obstacles[dataIndex];
                 return {
-                    desc: `The path forward becomes heavily obstructed by environmental hazards. <br><br><span class='text-white font-semibold'>Roadblock Encountered:</span> ${obs.t}`,
+                    desc: `Pressing forward, the environment shifts dramatically around you. <br><br><span class='text-white font-semibold'>Current Roadblock:</span> ${obs.t}`,
                     options: obs.o.map(opt => ({ text: opt.text, stat: opt.stat, romance: opt.r, isDeadly: opt.isDeadly || false, textOutcome: opt.res }))
                 };
             } else {
                 const combatText = currentAct.combats[ch % currentAct.combats.length];
                 return {
-                    desc: `Danger spikes instantly! Out of the flanking architecture, **${combatText}** surges forward with weapons drawn! ${partner.name} draws steel, backing up your line!`,
+                    desc: `Danger spikes instantly! Ahead, **${combatText}** surges forward out of the shadows with weapons drawn! ${partner.name} draws steel, backing up your line!`,
                     options: [
                         { text: "👟 [Dexterity Check] Coordinate a swift flanking assault loop with your companion", stat: "dex", romance: 1, textOutcome: "You flash past the target's primary guard, creating a clean opening for a dual-strike." },
-                        { text: "💪 [Strength Check] Plant your footing and draw the total combat aggro onto your stance", stat: "str", romance: 0, textOutcome: "You block the primary impact line, allowing your companion to safely execute an overhead counter." },
+                        { text: "💪 [Strength Check] Plant your footing and draw the total combat aggro onto your shield", stat: "str", romance: 0, textOutcome: "You block the primary impact line, allowing your companion to safely execute an overhead counter." },
                         { text: "👁️ [Wisdom Check] Pull back slightly into cover to find a tactical vulnerability", stat: "wis", romance: 1, textOutcome: "You spot an opening in their guard structure, directing your partner's blade to the soft spot." },
                         { text: "💀 [DEADLY STR Check] Flee the sector immediately, leaving your companion to fight alone", stat: "str", romance: -3, isDeadly: true, textOutcome: "You break formation and run. Without backup, the enemy pack surrounds you in the open, cutting you down instantly." }
                     ]
@@ -295,13 +418,11 @@
             }
         }
 
-        // Integrated Tabletop D&D Dice Roll Engine (Roll-Under-Modified Check)
         function handleDiceRoll(actionTaken, outcomeText, statType, scoreMod, isDeadly) {
-            const dieRoll = Math.floor(Math.random() * 20) + 1; // 1 to 20
+            const dieRoll = Math.floor(Math.random() * 20) + 1; 
             const playerStatValue = gameState.stats[statType] || 10;
             const difficultyMod = getActDifficultyMod(gameState.currentChapter);
             
-            // Core Balance Logic: d20 + Act Modifier must be equal or lower than the character sheet value
             const totalRollResult = dieRoll + difficultyMod;
             const isSuccess = (totalRollResult <= playerStatValue);
 
@@ -320,7 +441,7 @@
                     triggerGameOver = true;
                 } else {
                     resultBody = `Your timing falters under stress. You clear the encounter clumsily, but your failure leaves your partner exposed to structural danger.`;
-                    finalAffinityMod = -1; // Standard failure affinity penalty
+                    finalAffinityMod = -1; 
                 }
             }
 
@@ -356,8 +477,6 @@
 
         function processChapterProgression() {
             const ch = gameState.currentChapter;
-            
-            // Check if player has hit an End-of-Act threshold milestone to intercept with the Bonus Allocation Panel
             if (ch === 20 || ch === 40 || ch === 60 || ch === 80) {
                 renderBonusStatScreen();
             } else {
@@ -365,14 +484,12 @@
             }
         }
 
-        // End-of-Act Intercept Screen awarding manual point allocation to non-main attributes
         function renderBonusStatScreen() {
             updateHUD();
             
-            // Build button options checking explicitly for non-main stat eligibility fields
             const statButtons = ['str', 'dex', 'int', 'wis'].map(s => {
                 const mainLabel = isMainStat(s) ? "<span class='text-[9px] bg-indigo-950 text-indigo-400 px-1.5 py-0.5 rounded ml-2 font-bold'>MAIN</span>" : "";
-                const buttonDisabled = isMainStat(s) ? "disabled class='w-full py-3 px-4 bg-slate-950 text-slate-600 border border-slate-900 text-left rounded-xl flex justify-between items-center cursor-not-allowed'" : `onclick='applyBonusStatPoint("${s}")' class='w-full py-3 px-4 bg-amber-950/40 hover:bg-amber-900/60 border border-amber-500/30 hover:border-amber-400 text-left text-amber-100 font-medium rounded-xl transition-all flex justify-between items-center active:scale-98'`;
+                const buttonDisabled = isMainStat(s) ? "disabled class='w-full py-3 px-4 bg-slate-950 text-slate-600 border border-slate-900 text-left rounded-xl flex justify-between items-center cursor-not-allowed'" : `onclick="applyBonusStatPoint('${s}')" class="w-full py-3 px-4 bg-amber-950/40 hover:bg-amber-900/60 border border-amber-500/30 hover:border-amber-400 text-left text-amber-100 font-medium rounded-xl transition-all flex justify-between items-center active:scale-98"`;
                 
                 return `
                     <button ${buttonDisabled}>
@@ -407,7 +524,6 @@
             } else {
                 gameState.currentChapter++;
                 
-                // Execute standard automated class leveling increments
                 for (let s in gameState.stats) {
                     gameState.stats[s] += isMainStat(s) ? 4 : 2;
                 }
