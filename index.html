@@ -4,17 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Isekai Realms: D&D Chronicles</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Standalone CSS Link to bypass local desktop CORS restrictions -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght=400;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; font-size: 16px; }
+        .bg-slate-950 { background-color: #020617; }
+        .bg-slate-900 { background-color: #0f172a; }
+        .bg-slate-950\/40 { background-color: rgba(2, 6, 23, 0.4); }
+        .border-slate-800 { border-color: #1e293b; }
+        .border-slate-800\/60 { border-color: rgba(30, 41, 59, 0.6); }
+        .text-slate-100 { color: #f1f5f9; }
+        .text-slate-200 { color: #e2e8f0; }
+        .text-slate-300 { color: #cbd5e1; }
+        .text-slate-400 { color: #94a3b8; }
+        .text-slate-500 { color: #64748b; }
+        .text-slate-600 { color: #475569; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 flex justify-center items-center min-h-screen p-4 select-none">
 
+    <!-- Mobile Screen Frame Container -->
     <div class="w-full max-w-md bg-slate-900 border-2 border-slate-800 rounded-2xl shadow-2xl flex flex-col h-[90vh] overflow-hidden">
         
-        <header class="bg-slate-950 px-6 py-4 border-b border-slate-800 flex justify-between items-center shrink-0">
+        <!-- Game Header / HUD -->
+        <header class="bg-slate-950 px-6 py-4 border-b border-slate-800 flex justify-between items-center flex-shrink-0">
             <h1 class="text-xs font-bold tracking-widest text-indigo-400 uppercase font-mono" id="hud-act">Act I: Awakening</h1>
             <div id="hud-stats" class="text-xs text-slate-400 hidden">
                 <span id="hud-name" class="font-semibold text-slate-200"></span> | 
@@ -22,28 +36,45 @@
             </div>
         </header>
 
+        <!-- Dynamic Game Content Viewport -->
         <main id="game-viewport" class="flex-1 overflow-y-auto p-6 flex flex-col justify-between space-y-6">
-            </main>
+            <!-- Content Injected Dynamically -->
+        </main>
         
     </div>
 
     <script>
-        // GLOBAL DATA DEFINITIONS FIRST (Guarantees zero variable parsing collisions)
+        // Game State Model
+        let gameState = {
+            subType: "",       
+            name: "",
+            gender: "",        
+            partnerPref: "",   
+            currentChapter: 1, 
+            romanceScore: 0,
+            stats: { str: 5, dex: 5, int: 5, wis: 5 }
+        };
+
+        const view = document.getElementById("game-viewport");
+        const hud = document.getElementById("hud-stats");
+        const hudAct = document.getElementById("hud-act");
+
+        // Act Roadblocks Database
         const actThemes = {
             1: {
                 name: "Act I: The Awakening & The Wilds",
                 obstacles: [
                     { t: "A massive, thick briar patch tangled with glowing purple toxic thorns completely chokes off the overgrown path ahead.",
                       o: [
-                          { text: "👁️ [Wisdom Check] Quietly study the organic grid patterns to unweave a path vector", stat: "wis", r: 1, res: "Your focus maps out a clean crawl-line. You slide through the brush cleanly without triggering thorn traps.", failRes: "You misread the growth vectors. A toxic thorn tears your cloak, leaking trace poison that leaves you winded while your companion clears the path." },
-                          { text: "👟 [Dexterity Check] Attempt a series of swift vaults across the surrounding high rocks", stat: "dex", r: 0, res: "You vault the boulders cleanly, dropping safely down on the opposite path.", failRes: "Your boot slips on a loose shale rock. You tumble back into the mud, bruising your shoulder before scrambling past dynamically." },
-                          { text: "💪 [Strength Check] Forcefully slam your heavy arms down to shatter the smaller outer brambles", stat: "str", r: 0, res: "You clear a passage through brute force, though a stray prick makes your skin sting slightly.", failRes: "Your heavy swings lodge your weapon deep into a thick core vine. You lose valuable seconds tearing it free under stress." }
+                          { text: "👁️ [Wisdom Check] Quietly study the organic grid patterns to unweave a path vector", stat: "wis", r: 1, res: "Your focus maps out a clean crawl-line. You slide through the brush cleanly without triggering thorn traps.", failRes: "You misread the growth vectors. A toxic thorn tears your cloak, leaking trace poison." },
+                          { text: "👟 [Dexterity Check] Attempt a series of swift vaults across the surrounding high rocks", stat: "dex", r: 0, res: "You vault the boulders cleanly, dropping safely down on the opposite path.", failRes: "Your boot slips on a loose shale rock. You tumble back into the mud, bruising your shoulder." },
+                          { text: "💪 [Strength Check] Forcefully slam your heavy arms down to shatter the smaller outer brambles", stat: "str", r: 0, res: "You clear a passage through brute force, though a stray prick makes your skin sting slightly.", failRes: "Your heavy swings lodge your weapon deep into a thick core vine. You lose valuable seconds tearing it free." }
                       ]},
-                    { t: "The mountain trail terminates at a fractured wooden suspension bridge. The support lines are frayed down to a single rotten wire strand over a bottomless void canyon.",
+                    { t: "The mountain trail terminates at a fractured wooden suspension bridge over a bottomless void canyon.",
                       o: [
-                          { text: "📜 [Intelligence Check] Map the structural alignment to locate secure stone support joints", stat: "int", r: 1, res: "You calculate a precise stepping sequence, guiding your companion past the popping wire links smoothly.", failRes: "Your structural layout math is slightly off. A plank shatters completely beneath your heel, forcing your partner to grab your collar and pull you up." },
-                          { text: "👟 [Dexterity Check] Execute a high-speed sprint across before the planks give way", stat: "dex", r: 0, res: "You charge forward light-footed. Rotted wood fragments plunge into the abyss behind your steps, but you clear the ridge.", failRes: "You lose your footing halfway through the sprint. You slide face-first across the remaining wet ropes, scraping your forearms raw before scrambling across." },
-                          { text: "👁️ [Wisdom Check] Gauge the crosswinds to balance across the remaining steel tethers", stat: "wis", r: 1, res: "Patiently matching your center of gravity to the canyon gusts, you safely steady yourself to the other side.", failRes: "A sudden cross-canyon gust catches your balance completely unawares. You tilt violently sideways, barely clinging to the line as you pull yourself to safety." }
+                          { text: "📜 [Intelligence Check] Map the structural alignment to locate secure stone support joints", stat: "int", r: 1, res: "You calculate a precise stepping sequence, guiding your companion past the popping wire links smoothly.", failRes: "Your structural layout math is slightly off. A plank shatters completely beneath your heel." },
+                          { text: "👟 [Dexterity Check] Execute a high-speed sprint across before the planks give way", stat: "dex", r: 0, res: "You charge forward light-footed. Rotted wood fragments plunge into the abyss behind your steps.", failRes: "You lose your footing halfway through the sprint. You slide face-first across the remaining wet ropes." },
+                          { text: "👁️ [Wisdom Check] Gauge the crosswinds to balance across the remaining steel tethers", stat: "wis", r: 1, res: "Patiently matching your center of gravity to the canyon gusts, you safely steady yourself to the other side.", failRes: "A sudden cross-canyon gust catches your balance completely unawares. You tilt violently sideways." }
                       ]}
                 ],
                 combats: ["a pack of feral dire-wolves tracking your planar scent", "a mud-born Swamp Horror surging from the marsh bog frames"]
@@ -51,17 +82,17 @@
             2: {
                 name: "Act II: The Borderlands & The Guild",
                 obstacles: [
-                    { t: "A heavy ironwood gate seals the entry to the Adventurers Guild house, surrounded by a hostile, rioting mercenary crowd.",
+                    { t: "A heavy ironwood gate seals the entry to the Adventurers Guild house, surrounded by a hostile crowd.",
                       o: [
-                          { text: "👁️ [Wisdom Check] Calmly analyze the crowd density vectors to lead a peaceful negotiation bypass", stat: "wis", r: 1, res: "Your focus convinces the watch lieutenant. The side locks disengage and the ironwood gate slides open.", failRes: "The gate watch ignores your shouts over the roar of the mob. You are pushed back into the crowd friction lines, losing group coordination." },
-                          { text: "💪 [Strength Check] Ram your full weight directly into the wood frame to force the locked gear lines", stat: "str", r: 0, res: "Your physical mass snaps the secondary latch bracket, forcing the tracking gate slightly open.", failRes: "The reinforced ironwood doesn't budge an inch. The impact heavily rattles your ribs, leaving you coughing in front of the laughing crowd." },
-                          { text: "👟 [Dexterity Check] Weave smoothly through the chaotic cracks in the crowd layout undetected", stat: "dex", r: 1, res: "Slipping through blind spots like a ghost, you reach the side entry port before the mob notices.", failRes: "A burly mercenary steps directly into your path line. You collide heavily, drawing aggressive shouting that breaks your stealth cover completely." }
+                          { text: "👁️ [Wisdom Check] Calmly analyze the crowd density vectors to lead a peaceful negotiation bypass", stat: "wis", r: 1, res: "Your focus convinces the watch lieutenant. The side locks disengage cleanly.", failRes: "The gate watch ignores your shouts over the roar of the mob. You are pushed back into the crowd." },
+                          { text: "💪 [Strength Check] Ram your full weight directly into the wood frame to force the locked gear lines", stat: "str", r: 0, res: "Your physical mass snaps the secondary latch bracket, forcing the gate open.", failRes: "The reinforced ironwood doesn't budge an inch. The impact heavily rattles your ribs, leaving you coughing." },
+                          { text: "👟 [Dexterity Check] Weave smoothly through the chaotic cracks in the crowd layout undetected", stat: "dex", r: 1, res: "Slipping through blind spots like a ghost, you reach the side entry port undetected.", failRes: "A burly mercenary steps directly into your path line. You collide heavily, drawing aggressive shouting." }
                       ]},
-                    { t: "Deep inside a corrupt local merchant warehouse, you locate an iron chest trapped with an active explosive fire-rune sigil.",
+                    { t: "Deep inside a corrupt local merchant warehouse, you locate an iron chest trapped with a fire-rune sigil.",
                       o: [
-                          { text: "📜 [Intelligence Check] Apply your mana knowledge to delicately unweave the core runic parameters", stat: "int", r: 1, res: "You trace the energy lines, cleanly shorting out the explosive catalyst to reveal the contents.", failRes: "A miniature mana backlash sparks off the lock. The minor surge minorly singes your eyebrows, locking the container tight." },
-                          { text: "👟 [Dexterity Check] Slide a precision blade under the latch to detach the trigger filament", stat: "dex", r: 0, res: "Your fingers remain perfectly steady, unlinking the spring pressure before the rune can detonate.", failRes: "Your tool slips, scratching the internal brass plate. A sharp alarm hiss sounds, forcing you to break the lid open roughly." },
-                          { text: "👁️ [Wisdom Check] Safely douse the latch frame with specialized dampening fluid to suppress the sparks", stat: "wis", r: 1, res: "The neutralizing mixture breaks the arc matrix, rendering the seal safe to pick open.", failRes: "The fluid triggers an unexpected chemical fizz. White smoke clouds your vision, making you cough as the chest locking bars snap shut permanently." }
+                          { text: "📜 [Intelligence Check] Apply your mana knowledge to delicately unweave the core runic parameters", stat: "int", r: 1, res: "You trace the energy lines, cleanly shorting out the explosive catalyst.", failRes: "A miniature mana backlash sparks off the lock. The minor surge minorly singes your eyebrows." },
+                          { text: "👟 [Dexterity Check] Slide a precision blade under the latch to detach the trigger filament", stat: "dex", r: 0, res: "Your fingers remain perfectly steady, unlinking the spring pressure completely.", failRes: "Your tool slips, scratching the internal brass plate. A sharp alarm hiss sounds, forcing you to pry it open." },
+                          { text: "👁️ [Wisdom Check] Safely douse the latch frame with specialized dampening fluid to suppress the sparks", stat: "wis", r: 1, res: "The neutralizing mixture breaks the arc matrix, rendering the seal safe to pick.", failRes: "The fluid triggers an unexpected chemical fizz. White smoke clouds your vision, locking the bars." }
                       ]}
                 ],
                 combats: ["a paid squad of brutal warehouse thug enforcers", "a toxic green Sewer Ooze dropping from the aqueduct stones"]
@@ -69,29 +100,29 @@
             3: {
                 name: "Act III: The Shadow Descent",
                 obstacles: [
-                    { t: "An unstable arcane font hums inside a dark cavern fissure, leaking volatile raw elemental magic across the path.",
+                    { t: "An unstable arcane font hums inside a dark cavern fissure, leaking volatile raw elemental magic.",
                       o: [
-                          { text: "📜 [Intelligence Check] Focus your mana paths to trace a counter-containment sigil seal", stat: "int", r: 1, res: "Your structural calculation stabilizes the font drift, grounding the elements and clearing the road.", failRes: "Your counter-seal pattern collapses under the pressure. A minor shockwave knocks you back, scraping your knuckles against the granite walls." },
-                          { text: "👟 [Dexterity Check] Timing your breathing, try to delicately dodge past the energy pulses", stat: "dex", r: 0, res: "Moving with absolute physical precision, you slide past the crack without absorbing a single bolt.", failRes: "You mistime the visual cycle. An electrical arc clips your shoulder armor, making your limbs feel completely numb for several seconds." },
-                          { text: "👁️ [Wisdom Check] Patiently track the visual flare patterns to wait out the active bursts", stat: "wis", r: 1, res: "By analyzing the cycle timing, you lead the group through during a perfect millisecond lull.", failRes: "You miscalculate the ambient delay. A bright flare momentarily flashes your eyes, forcing you to grope blindly forward." }
+                          { text: "📜 [Intelligence Check] Focus your mana paths to trace a counter-containment sigil seal", stat: "int", r: 1, res: "Your structural calculation stabilizes the font drift, grounding the elements cleanly.", failRes: "Your counter-seal pattern collapses under the pressure. A minor shockwave knocks you back." },
+                          { text: "👟 [Dexterity Check] Timing your breathing, try to delicately dodge past the energy pulses", stat: "dex", r: 0, res: "Moving with absolute physical precision, you slide past the crack smoothly.", failRes: "You mistime the visual cycle. An electrical arc clips your shoulder armor, leaving your arm numb." },
+                          { text: "👁️ [Wisdom Check] Patiently track the visual flare patterns to wait out the active bursts", stat: "wis", r: 1, res: "By analyzing the cycle timing, you lead the group through during a perfect millisecond lull.", failRes: "You miscalculate the ambient delay. A bright flare momentarily flashes your eyes, forcing you forward blindly." }
                       ]}
                 ],
-                combats: ["blind cave stalkers tracking your movements purely by sound waves", "shadow-cultist ambushers attacking your camp out of the dark stones"]
+                combats: ["blind pipe stalkers tracking your movements purely by sound waves", "shadow-cultist ambushers attacking your camp out of the dark stones"]
             },
             4: {
                 name: "Act IV: The Shattered Citadel",
                 obstacles: [
                     { t: "A heavily armored Citadel Sentinel commander stands watch over the lower barracks armory tunnel.",
                       o: [
-                          { text: "👁️ [Wisdom Check] Invoke high knightly tactical codes to command him to drop his posture", stat: "wis", r: 1, res: "The sentinel drops his weapon frame in respect to your authority, granting you full passage.", failRes: "He recognizes you as an interloper immediately, laughing off your demands as he sounds a low-frequency horn alarm." },
-                          { text: "💪 [Strength Check] Intercept his guard line with a crushing, high-impact shoulder block tackle", stat: "str", r: 0, res: "You launch them back into the weapon ironwork racks, disrupting the sector alerts.", failRes: "You crash into him like a stone wall. His heavy plate absorbs the velocity completely, leaving you winded as he shifts into a combat stance." },
-                          { text: "📜 [Intelligence Check] Decipher the wall console arrays nearby to activate a structural sorting lock gate behind him", stat: "int", r: 1, res: "A metal divider slams down from the ceiling, isolating the guard cleanly on the far flank loop.", failRes: "The rusted console circuits spark and short out under your touch. The backup deadbolts lock down, forcing a manual fight layout." }
+                          { text: "👁️ [Wisdom Check] Invoke high knightly tactical codes to command him to drop his posture", stat: "wis", r: 1, res: "The sentinel drops his weapon frame in respect to your authority, granting you full passage.", failRes: "He recognizes you as an interloper immediately, laughing off your demands as he sounds an alarm." },
+                          { text: "💪 [Strength Check] Intercept his guard line with a crushing, high-impact shoulder block tackle", stat: "str", r: 0, res: "You launch them back into the weapon ironwork racks, disrupting the sector alerts.", failRes: "You crash into him like a stone wall. His heavy plate absorbs the velocity completely, leaving you winded." },
+                          { text: "📜 [Intelligence Check] Decipher the wall console arrays nearby to activate a structural sorting lock gate", stat: "int", r: 1, res: "A metal divider slams down from the ceiling, isolating the guard cleanly on the far flank.", failRes: "The rusted console circuits spark and short out under your touch. The backup deadbolts lock down." }
                       ]},
                     { t: "A collapsing courtyard stone bridge threatens to slide into the mountain gorge under heavy artillery fire.",
                       o: [
-                          { text: "👁️ [Wisdom Check] Track the mortar fire trajectories to execute a timed dash sequence", stat: "wis", r: 1, res: "You lead a clean tactical sprint across the shaking stones right as an explosive shell crashes behind you.", failRes: "A near-miss shockwave blows you off your feet. You hit the concrete hard, losing valuable momentum as masonry breaks loose." },
-                          { text: "💪 [Strength Check] Brace a falling stone structural pillar to hold the archways up for the party", stat: "str", r: 2, res: "Your muscles lock under the concrete stress, maintaining the path long enough for everyone to slide through.", failRes: "The structural weight collapses too fast. The block slips from your grip, grazing your calf as you throw yourself clear of the fall lines." },
-                          { text: "👟 [Dexterity Check] Fluidly balance across the breaking ledge frames as the foundations tilt", stat: "dex", r: 1, res: "You adapt to the dropping centers of mass, diving safely onto the solid cliff road.", failRes: "You misjudge a shifting stone vector. Your left boot catches a dropping block, leaving you dangling by your fingertips until you pull up." }
+                          { text: "👁️ [Wisdom Check] Track the mortar fire trajectories to execute a timed dash sequence", stat: "wis", r: 1, res: "You lead a clean tactical sprint across the shaking stones right as an explosive shell crashes.", failRes: "A near-miss shockwave blows you off your feet. You hit the concrete hard, losing valuable momentum." },
+                          { text: "💪 [Strength Check] Brace a falling stone structural pillar to hold the archways up for the party", stat: "str", r: 2, res: "Your muscles lock under the concrete stress, maintaining the path long enough for everyone.", failRes: "The structural weight collapses too fast. The block slips from your grip, grazing your calf." },
+                          { text: "👟 [Dexterity Check] Fluidly balance across the breaking ledge frames as the foundations tilt", stat: "dex", r: 1, res: "You adapt to the dropping centers of mass, diving safely onto the solid cliff road.", failRes: "You misjudge a shifting stone vector. Your left boot catches a dropping block, leaving you dangling." }
                       ]}
                 ],
                 combats: ["an elite crimson Wyvern diving from the spiked battlements", "a squad of dark spell-swords wielding high-voltage lightning blades"]
@@ -101,9 +132,9 @@
                 obstacles: [
                     { t: "The palace inner sanctum door is bound by an ancient blood-magic seal that turns skin to ash upon proximity.",
                       o: [
-                          { text: "📜 [Intelligence Check] Execute a core algorithmic rewrite of the runic matrix coordinates", stat: "int", r: 1, res: "Line by line, the glowing crimson blood circle dims out, causing the grand throne doors to click open.", failRes: "The runic layers shift layout mid-cast. A severe mental drain spike strains your concentration, leaving you temporarily disoriented." },
-                          { text: "💪 [Strength Check] Execute an absolute physical shield rush combo to shatter the iron hinges", stat: "str", r: 0, res: "Your physical leverage breaks the reinforced bindings, splintering the frame through raw mass.", failRes: "The massive iron reinforcements deflect your speed entirely. The feedback jar rattles your arms up to the shoulders, leaving the seal intact." },
-                          { text: "👁️ [Wisdom Check] Focus your defensive energies to project a baseline barrier field over the seal path", stat: "wis", r: 1, res: "The elementally balanced shield acts as an insulation layer, letting you turn the physical lock safely.", failRes: "Your protective energy field flickers out too early. A minor heat flare singes your gauntlets, forcing you back to square one." }
+                          { text: "📜 [Intelligence Check] Execute a core algorithmic rewrite of the runic matrix coordinates", stat: "int", r: 1, res: "Line by line, the glowing crimson blood circle dims out, causing the doors to click open.", failRes: "The runic layers shift layout mid-cast. A severe mental drain spike strains your concentration." },
+                          { text: "💪 [Strength Check] Execute an absolute physical shield rush combo to shatter the iron hinges", stat: "str", r: 0, res: "Your physical leverage breaks the reinforced bindings, splintering the frame cleanly.", failRes: "The massive iron reinforcements deflect your speed entirely. The feedback jar rattles your arms." },
+                          { text: "👁️ [Wisdom Check] Focus your defensive energies to project a baseline barrier field over the seal path", stat: "wis", r: 1, res: "The elementally balanced shield acts as an insulation layer, letting you turn the lock safely.", failRes: "Your protective energy field flickers out too early. A minor heat flare singes your gauntlets." }
                       ]}
                 ],
                 combats: ["a giant Obsidian Golem constructed from the mountain stone", "the High Demon Lord's Inner Council elemental spellcasters"]
@@ -112,7 +143,7 @@
 
         const campfireDatabase = {
             10: {
-                desc: "The deep woods are dead silent save for the fire's crackle. Sitting across from you on a pine trunk, your companion breaks a travel biscuit. \"You look completely out of place staring at that glowing mirror box. Tell me the truth... where did you actually come from? No more fairy tales.\"",
+                desc: "The deep woods are dead silent save for the fire's crackle. Sitting across from you on a pine trunk, your companion breaks a travel biscuit. \"You look completely out of place staring at that glowing mirror box. Tell me the truth... where did you actually come from?\"",
                 options: [
                     { text: "👁️ [Wisdom Check] Openly explain the structure of Earth, sharing your raw displacement vulnerably", stat: "wis", romance: 2, textOutcome: "They study your eyes intently as you speak of glass webs. Sensing no deceit, they nod softly. 'A strange world, but it explains your wonder here.'", failRes: "Your tone layout feels overly dramatic. They narrow their eyes, sighing. 'A world of glass towers? You are a terrible storyteller, traveler.'" },
                     { text: "📜 [Intelligence Check] Offer a witty, analytical comparison between computer boards and runic layouts", stat: "int", romance: 2, textOutcome: "They let out a sudden, rare laugh at your technical breakdown. 'So your home runs on invisible formulas too? Fascinating.'", failRes: "Your complex analogies spin completely out of control. They blink blankly, shaking their head. 'You sound like a malfunctioning archive.'" },
@@ -146,7 +177,7 @@
             50: {
                 desc: "Deep inside the cavern layout, the air is thick with trace minerals. Your companion unbuckles their shoulder guards, completely exhausted. \"I never believed things from outside our plane could be human. I thought anything from a summoning rift would be a monster. But you... I've grown to depend on you completely.\"",
                 options: [
-                    { text: "👁️ [Wisdom Check] Lean in closer, sharing a quiet, mutual moment of grounding peace", stat: "wis", romance: 2, textOutcome: "You rest your shoulder against theirs. They lay their head down, closing their eyes. 'Don't let the fire fade out tonight, traveler.'", failRes: "You stiffen up nervously. They notice the cold distance, putting their armor pieces back on awkwardly. 'Right. Let's focus on the perimeter checks.'" },
+                    { text: "👁️ [Wisdom Check] Lean in closer, sharing a quiet, mutual moment of grounding peace", stat: "wis", romance: 2, textOutcome: "You rest your shoulder against theirs. They lay their head down, closing their eyes. 'Don't let the fire fade out tonight, traveler.'", failRes: "You wish to maintain a cautious boundary layout. They notice the distance, putting their plates back on. 'Right. Let's focus on the safety lines.'" },
                     { text: "📜 [Intelligence Check] Softly note that monsters rarely spend this much time adjusting armor filaments for them", stat: "int", romance: 2, textOutcome: "They smirk, the psychological fatigue melting away. 'True. You're far too tedious and detailed to be an extra-planar demon.'", failRes: "Your witty retort misses the vulnerable subtext. They sigh heavily, pulling their knees to their chest. 'Never mind. Let's just sleep.'" },
                     { text: "👟 [Dexterity Check] Reach out and gently brush a stray lock of cavern-dust hair away from their eyes", stat: "dex", romance: 2, textOutcome: "Your touch is incredibly light and fluid. They lean into your palm for a quiet second, their breathing slowing completely. 'Thank you.'", failRes: "Your finger pokes their eyebrow frame instead under the low firelight. They blink rapidly, pulling back. 'Careful. Visibility is poor down here.'" }
                 ]
@@ -183,17 +214,6 @@
             }
         };
 
-        // CORE ENGINE LOGIC FUNCTIONS
-        let gameState = {
-            subType: '',       
-            name: '',
-            gender: '',        
-            partnerPref: '',   
-            currentChapter: 1, 
-            romanceScore: 0,
-            stats: { str: 5, dex: 5, int: 5, wis: 5 }
-        };
-
         function getActiveActTheme(ch) {
             if (ch <= 20) return actThemes[1];
             if (ch <= 40) return actThemes[2];
@@ -219,93 +239,95 @@
             else hudAct.innerText = "Act V: Obsidian Apex";
 
             if (gameState.name) {
-                hud.classList.remove('hidden');
-                document.getElementById('hud-name').innerText = `${gameState.name} (${gameState.subType})`;
-                document.getElementById('hud-chapter').innerText = `Ch ${ch}/100`;
+                hud.classList.remove("hidden");
+                document.getElementById("hud-name").innerText = gameState.name + " (" + gameState.subType + ")";
+                document.getElementById("hud-chapter").innerText = "Ch " + ch + "/100";
             } else {
-                hud.classList.add('hidden');
+                hud.classList.add("hidden");
             }
         }
 
+        function checkExistingSave() {
+            const localData = localStorage.getItem("isekai_chronicles_save");
+            return localData ? JSON.parse(localData) : null;
+        }
+
+        function isMainStat(stat) {
+            const type = gameState.subType;
+            if (type === "Knight") return (stat === "str" || stat === "dex");
+            if (type === "Summoner") return (stat === "int" || stat === "wis");
+            if (type === "Ranger") return (stat === "dex" || stat === "wis");
+            if (type === "Assassin") return (stat === "dex" || stat === "int");
+            return false;
+        }
+
         function recompileSaveState() {
-            localStorage.setItem('isekai_chronicles_save', JSON.stringify(gameState));
+            localStorage.setItem("isekai_chronicles_save", JSON.stringify(gameState));
         }
 
         function getRomancePartner() {
             const pref = gameState.partnerPref;
-            if (pref === 'Female') return { name: 'Lyra', role: 'the Fierce Elven Ranger' };
-            if (pref === 'Male') return { name: 'Garrick', role: 'the Charming Vanguard Knight' };
-            return { name: 'Eldrin', role: 'the Rogue High Elf Mage' }; 
+            if (pref === "Female") return { name: "Lyra", role: "the Fierce Elven Ranger" };
+            if (pref === "Male") return { name: "Garrick", role: "the Charming Vanguard Knight" };
+            return { name: "Eldrin", role: "the Rogue High Elf Mage" }; 
         }
 
         function getChapterData(ch, partner) {
             const currentAct = getActiveActTheme(ch);
             
             const standardCombatOptions = [
-                { text: "⚔️ [Dexterity Check] Coordinate a swift flanking assault combo", stat: "dex", romance: 1, textOutcome: "You time your advance perfectly, flashing past the target's armor line to expose a clean opening.", failRes: "Your timing window shifts slightly out of sync. You miss the precise strike angle, taking a minor shield deflection clip." },
-                { text: "🛡️ [Strength Check] Dig your boots in and draw the combat pressure onto your stance", stat: "str", romance: 0, textOutcome: "You slam your weapon against your armor, forcing the enemy focus entirely onto your defensive position.", failRes: "Your footing slides out on the loose topsoil. The impact breaks your primary posture frame, shaking your layout slightly." },
-                { text: "🏃 [Wisdom Check] Pull back into the immediate brush to target a vulnerability", stat: "wis", romance: 1, textOutcome: "You duck behind cover, locating a major tactical exploit path to call out to your partner.", failRes: "You trip over a low ground root while diving for cover. The sudden noisy rustle exposes your position cleanly." },
-                { text: "📜 [Intelligence Check] Analyze the target’s attack cycles to spot an environmental vulnerability", stat: "int", romance: 1, textOutcome: "You precisely call out a timing lag in the enemy line, letting your partner land a clean exploit hit.", failRes: "You over-analyze the trajectory maps, completely missing a swift flanking strike that catches your shoulder plate." }
+                { text: "⚔️ [Dexterity Check] Coordinate a swift flanking assault combo", stat: "dex", romance: 1, textOutcome: "You time your advance perfectly, flashing past the target's armor line to expose a clean opening.", failRes: "Your timing window shifts out of sync. You miss the strike angle." },
+                { text: "🛡️ [Strength Check] Dig your boots in and draw the combat pressure onto your stance", stat: "str", romance: 0, textOutcome: "You slam your weapon against your armor, forcing the enemy focus entirely onto your defensive position.", failRes: "Your footing slides out on the loose topsoil. The impact breaks your posture." },
+                { text: "🏃 [Wisdom Check] Pull back into the immediate brush to target a vulnerability", stat: "wis", romance: 1, textOutcome: "You duck behind cover, locating a major tactical exploit path to call out to your partner.", failRes: "You trip over a low ground root while diving for cover." },
+                { text: "📜 [Intelligence Check] Analyze the target’s attack cycles to spot an environmental vulnerability", stat: "int", romance: 1, textOutcome: "You precisely call out a timing lag in the enemy line, letting your partner land a clean exploit hit.", failRes: "You over-analyze the trajectory maps, missing a swift flanking strike." }
             ];
 
             if (ch === 1) {
                 return {
-                    desc: `You gasp for air, collapsing onto a bed of damp earth and pine needles. The blinding light of an intricate summoning circle fades on the ground beneath you. Your head throbs, and your clothes are completely out of place here. Reaching into your pocket, you pull out your Earth cell phone—there is zero service, but its offline screen flickers to life, strangely vibrating in sync with the ambient energy. As you stand up trying to process your new body's **${gameState.subType}** abilities, a branch snaps. ${partner.name}, ${partner.role}, drops from the canopy above with a weapon drawn. "State your name and business, traveler! I saw the summoning rift from the valley!"`,
+                    desc: "You gasp for air, collapsing onto a bed of damp earth and pine needles. The blinding light of an intricate summoning circle fades on the ground beneath you. Your head throbs, and your clothes are completely out of place here. Reaching into your pocket, you pull out your Earth cell phone—there is zero service, but its offline screen flickers to life, strangely vibrating in sync with the ambient energy. As you stand up trying to process your new body's " + gameState.subType + " abilities, a branch snaps. " + partner.name + ", " + partner.role + ", drops from the canopy above with a weapon drawn. \"State your name and business, traveler! I saw the summoning rift from the valley!\"",
                     options: [
-                        { text: "👁️ [Wisdom Check] Lower your hands slowly and articulate a calm explanation string", stat: "wis", romance: 1, textOutcome: "Your honest posture puts them at ease. Lowering the weapon, they listen to your bizarre tale with deep curiosity.", failRes: "Your voice cracks heavily under the stress of the portal shift. You sound highly erratic, causing them to keep their blade edge leveled right at your throat." },
-                        { text: "💪 [Strength Check] Brace your balance profile and prepare for an immediate martial exchange", stat: "str", romance: 0, textOutcome: "Steel meets steel with a violent ring! The physical trade tests your baseline muscle groups, earning a nod of respect.", failRes: "You swing wildly with your unfamiliar limbs. They effortlessly parry your balance vector away, pinning you into the dirt within seconds." }
+                        { text: "👁️ [Wisdom Check] Lower your hands slowly and articulate a calm explanation string", stat: "wis", romance: 1, textOutcome: "Your honest posture puts them at ease. Lowering the weapon, they listen to your bizarre tale with deep curiosity.", failRes: "Your voice cracks heavily under the stress of the portal shift. You sound highly erratic." },
+                        { text: "💪 [Strength Check] Brace your balance profile and prepare for an immediate martial exchange", stat: "str", romance: 0, textOutcome: "Steel meets steel with a violent ring! The physical trade tests your baseline muscle groups, earning a nod of respect.", failRes: "You swing wildly with your unfamiliar limbs. They effortlessly parry your balance vector away." }
                     ]
                 };
             }
             
             if (ch === 2) {
                 return {
-                    desc: `Leaving the glowing ash of the summoning site behind, you sprint alongside ${partner.name}. The canopy overhead slams shut, casting the forest into deep twilight. Suddenly, the path ends at a massive briar patch tangled with thick, glowing purple thorns that hum with trace amounts of poison mana. You have to pass.`,
+                    desc: "Leaving the glowing ash of the summoning site behind, you sprint alongside " + partner.name + ". The canopy overhead slams shut, casting the forest into deep twilight. Suddenly, the path ends at a massive briar patch tangled with thick, glowing purple thorns that hum with trace amounts of poison mana. You have to pass.",
                     options: [
-                        { text: "🍎 [Wisdom Check] Feed nearby berries to local wildlife to clear a crawling path", stat: "wis", romance: 1, textOutcome: "The critters pack together, chewing rapidly through the root systems to clear a narrow crawling gap for you.", failRes: "The wild rodents ignore the berries completely, startled by your jerky movements. They hiss loudly, biting your gloves as you fall back." },
-                        { text: "👟 [Dexterity Check] Use nearby low boulders to vault cleanly over the wall", stat: "dex", romance: 0, textOutcome: "You execute a clean aerial leap, clearing the thorns completely and landing safely on the opposite path.", failRes: "Your heel catches the very top vine loop. You clear the main patch but drop heavily onto your chest on the far gravel trail." }
+                        { text: "🍎 [Wisdom Check] Feed nearby berries to local wildlife to clear a crawling path", stat: "wis", romance: 1, textOutcome: "The critters pack together, chewing rapidly through the root systems to clear a narrow crawling gap for you.", failRes: "The wild rodents ignore the berries completely, startled by your jerky movements." },
+                        { text: "👟 [Dexterity Check] Use nearby low boulders to vault cleanly over the wall", stat: "dex", romance: 0, textOutcome: "You execute a clean aerial leap, clearing the thorns completely and landing safely on the opposite path.", failRes: "Your heel catches the very top vine loop. You clear the main patch but drop heavily onto your chest." }
                     ]
                 };
             }
             
-            if (ch === 3) {
-                return {
-                    desc: `Breaching the thickets, the path breaks into a rocky, uphill ravine. The sound of snarling echoes from the dense trees to your left. A hunting pack of feral dire-wolves sweeps down from the ridge line, red eyes locked onto your strange planar scent!`,
-                    options: standardCombatOptions
-                };
-            }
-            
+            if (ch === 3) { return { desc: "Breaching the thickets, the path breaks into a rocky, uphill ravine. The sound of snarling echoes from the dense trees to your left. A hunting pack of feral dire-wolves sweeps down from the ridge line, red eyes locked onto your strange planar scent!", options: standardCombatOptions }; }
             if (ch === 4) {
                 return {
-                    desc: `With the wolves scattered, you push higher up the ridge line. The path turns treacherous as you reach a broken wooden suspension bridge spanning a yawning canyon gap. The support ropes are frayed to the final thread, swaying over an absolute drop.`,
+                    desc: "With the wolves scattered, you push higher up the ridge line. The path turns treacherous as you reach a broken wooden suspension bridge spanning a yawning canyon gap. The support ropes are frayed to the final thread, swaying over an absolute drop.",
                     options: [
-                        { text: "🔍 [Intelligence Check] Analyze the line stress to step precisely on support joints", stat: "int", romance: 1, textOutcome: "You map out a safe stepping route, navigating the swaying structure safely.", failRes: "Your step triggers a rotted seam. A board breaks clean away under your foot, leaving you dangling by your elbows until hauled up." },
-                        { text: "🏃 [Dexterity Check] Sprint across at top speed before the planks can detach", stat: "dex", romance: 0, textOutcome: "You sprint hard. Planks splinter into the abyss behind your boots, but your forward momentum carries you across.", failRes: "You slip on a mossy support knot halfway across. You slide rough along the main hemp line, scraping your arms before scrambling across." }
+                        { text: "🔍 [Intelligence Check] Analyze the line stress to step precisely on support joints", stat: "int", romance: 1, textOutcome: "You map out a safe stepping route, navigating the swaying structure safely.", failRes: "Your step triggers a rotted seam. A board breaks clean away under your foot, leaving you dangling." },
+                        { text: "🏃 [Dexterity Check] Sprint across at top speed before the planks can detach", stat: "dex", romance: 0, textOutcome: "You sprint hard. Planks splinter into the abyss behind your boots, but your forward momentum carries you across.", failRes: "You slip on a mossy support knot halfway across. You slide rough along the main hemp line, scraping your arms." }
                     ]
                 };
             }
-            
-            if (ch === 5) {
-                return {
-                    desc: `Safely across the canyon, the trail dips down into a dense, muddy marshland. Deep bubbles gurgle in the black mire nearby. Without warning, a towering swamp horror—a mass of rotted roots and glowing eyes—surges out of the mud!`,
-                    options: standardCombatOptions
-                };
-            }
+            if (ch === 5) { return { desc: "Safely across the canyon, the trail dips down into a dense, muddy marshland. Deep bubbles gurgle in the black mire nearby. Without warning, a towering swamp horror—a mass of rotted roots and glowing eyes—surges out of the mud!", options: standardCombatOptions }; }
 
             if (ch === 99) {
                 return {
-                    desc: `The High Demon Lord crashes to the floor, turning to ash! However, his dying curse triggers a catastrophic structural collapse of the obsidian throne room. A massive falling stone column is plummeting straight toward an unconscious, exhausted ${partner.name}! Simultaneously, your phone flashes with a blinding portal signal—your one chance to warp safely back to Earth is active right now.`,
+                    desc: "The High Demon Lord crashes to the floor, turning to ash! However, his dying curse triggers a catastrophic structural collapse of the obsidian throne room. A massive falling stone column is plummeting straight toward an unconscious, exhausted " + partner.name + "! Simultaneously, your phone flashes with a blinding portal signal—your one chance to warp safely back to Earth is active right now.",
                     options: [
-                        { text: "💪 [Strength Sacrifice Check] Dive over their frame, lock your shields, and fully tank the falling debris!", stat: "str", romance: 10, textOutcome: "Without a single thought for yourself, you shield them. The masonry smashes down, shattering your armor but keeping them completely untouched.", failRes: "You aren't fast enough to absorb the absolute load cleanly. The collision clips you hard, bruising your side deeply as you tumble away together." },
-                        { text: "👟 [Dexterity Evade Check] Grab them by the pack and execute a frantic rolling slide toward the exit archways", stat: "dex", romance: 0, textOutcome: "You haul their weight across the tiling just as the column crashes onto the exact space you occupied a second prior.", failRes: "You lose your footing on the slick obsidian tiles while hauling their frame. The falling stone clips your packs, throwing you both down hard." },
-                        { text: "📜 [Intelligence Escape Check] Abandon the realm and dive directly into the phone portal to secure your escape home", stat: "int", romance: -5, textOutcome: "Driven by survival instinct, you leap into the light. The dimensional gate snaps shut, leaving the fantasy world behind forever.", failRes: "The portal destabilizes right as you reach the threshold. The magical feedback snaps back, knocking you unconscious inside the falling debris field." }
+                        { text: "💪 [Strength Sacrifice Check] Dive over their frame, lock your shields, and fully tank the falling debris!", stat: "str", romance: 10, textOutcome: "Without a single thought for yourself, you shield them. The masonry smashes down, shattering your armor but keeping them completely untouched.", failRes: "You aren't fast enough to absorb the absolute load cleanly. The collision clips you hard, bruising your side deeply." },
+                        { text: "👟 [Dexterity Evade Check] Grab them by the pack and execute a frantic rolling slide toward the exit archways", stat: "dex", romance: 0, textOutcome: "You haul their weight across the tiling just as the column crashes onto the exact space you occupied a second prior.", failRes: "You lose your footing on the slick obsidian tiles while hauling their frame. The falling stone clips your packs." },
+                        { text: "📜 [Intelligence Escape Check] Abandon the realm and dive directly into the phone portal to secure your escape home", stat: "int", romance: -5, textOutcome: "Driven by survival instinct, you leap into the light. The dimensional gate snaps shut, leaving the fantasy world behind forever.", failRes: "The portal destabilizes right as you reach the threshold. The magical feedback snaps back, knocking you unconscious." }
                     ]
                 };
             }
 
             if (ch === 100) {
                 return {
-                    desc: `The cataclysm settles completely. The dust clears over the ruined throne room floor. The dark rifts are silent, and the realm has been decisively saved. Standing among the remnants of the final battle line, you turn toward ${partner.name} to face the final calculation of your timeline journey.`,
+                    desc: "The cataclysm settles completely. The dust clears over the ruined throne room floor. The dark rifts are silent, and the realm has been decisively saved. Standing among the remnants of the final battle line, you turn toward " + partner.name + " to face the final calculation of your timeline journey.",
                     options: [{ text: "🌌 Complete the parameters and witness your final fate.", stat: "int", romance: 0, textOutcome: "The timeline calculations compile..." }]
                 };
             }
@@ -326,13 +348,13 @@
             if (isExploration) {
                 const obs = currentAct.obstacles[dataIndex];
                 return {
-                    desc: `Pressing forward, the environment shifts dramatically around you. <br><br><span class='text-white font-semibold'>Current Roadblock:</span> ${obs.t}`,
+                    desc: "Pressing forward, the environment shifts dramatically around you. <br><br><span class='text-white font-semibold'>Current Roadblock:</span> " + obs.t,
                     options: obs.o.map(opt => ({ text: opt.text, stat: opt.stat, romance: opt.r, textOutcome: opt.res, failRes: opt.failRes }))
                 };
             } else {
                 const combatText = currentAct.combats[ch % currentAct.combats.length];
                 return {
-                    desc: `Danger spikes instantly! Ahead, **${combatText}** surges forward out of the shadows with weapons drawn! ${partner.name} draws steel, backing up your line!`,
+                    desc: "Danger spikes instantly! Ahead, **" + combatText + "** surges forward out of the shadows with weapons drawn! " + partner.name + " draws steel, backing up your line!",
                     options: standardCombatOptions
                 };
             }
@@ -344,96 +366,49 @@
             let resumeButtonHTML = "";
             
             if (savedState && savedState.currentChapter > 1 && savedState.currentChapter <= 100) {
-                resumeButtonHTML = `
-                    <button onclick="resumeSavedGame()" class="w-full py-4 px-6 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl transition-all border border-amber-500/30 active:scale-95 flex justify-between items-center shadow-lg shadow-amber-900/20">
-                        <span>📜 Resume Journey</span>
-                        <span class="text-xs bg-amber-950/50 px-2 py-1 rounded">Ch ${savedState.currentChapter}</span>
-                    </button>
-                `;
+                resumeButtonHTML = "<button onclick='resumeSavedGame()' class='w-full py-4 px-6 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl transition-all border border-amber-500/30 active:scale-95 flex justify-between items-center shadow-lg shadow-amber-900/20'><span>📜 Resume Journey</span><span class='text-xs bg-amber-950/50 px-2 py-1 rounded'>Ch " + savedState.currentChapter + "</span></button>";
             }
 
-            view.innerHTML = `
-                <div class="flex-1 flex flex-col justify-center space-y-6">
-                    <div class="text-center space-y-2">
-                        <h2 class="text-3xl font-bold text-white tracking-tight">Isekai Realms</h2>
-                        <p class="text-slate-400 text-sm">Cross the dimensional gate into the D&D ruleset.</p>
-                    </div>
-                    <div class="flex flex-col space-y-3">
-                        ${resumeButtonHTML}
-                        <button onclick="initClassScreen()" class="w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-center rounded-xl transition-all border border-indigo-500/30 active:scale-95 shadow-lg shadow-indigo-900/20">
-                            ✨ Begin New Awakening
-                        </button>
-                    </div>
-                </div>
-            `;
+            view.innerHTML = "<div class='flex-1 flex flex-col justify-center space-y-6'><div class='text-center space-y-2'><h2 class='text-3xl font-bold text-white tracking-tight'>Isekai Realms</h2><p class='text-slate-400 text-sm'>Cross the dimensional gate into the D&D ruleset.</p></div><div class='flex flex-col space-y-3'>" + resumeButtonHTML + "<button onclick='initClassScreen()' class='w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-center rounded-xl transition-all border border-indigo-500/30 active:scale-95 shadow-lg shadow-indigo-900/20'>✨ Begin New Awakening</button></div></div>";
         }
 
         function initClassScreen() {
-            view.innerHTML = `
-                <div class="flex-1 flex flex-col justify-center space-y-6">
-                    <div class="text-center space-y-2">
-                        <h2 class="text-2xl font-bold text-white">Select Your Class</h2>
-                        <p class="text-slate-400 text-sm">Your physical awakening ruleset inside the magical plane.</p>
-                    </div>
-                    <div class="flex flex-col space-y-3">
-                        <button onclick="selectClass('Summoner')" class="w-full py-4 px-6 bg-indigo-950 hover:bg-indigo-900 text-left font-semibold text-white rounded-xl transition-all border border-indigo-500/30 active:scale-95 flex justify-between items-center">
-                            <span>🔮 Summoner</span> <span class="text-xs text-indigo-400">INT & WIS Focus</span>
-                        </button>
-                        <button onclick="selectClass('Ranger')" class="w-full py-4 px-6 bg-emerald-950 hover:bg-emerald-900 text-left font-semibold text-white rounded-xl transition-all border border-emerald-500/30 active:scale-95 flex justify-between items-center">
-                            <span>🏹 Ranger</span> <span class="text-xs text-emerald-400">DEX & WIS Focus</span>
-                        </button>
-                        <button onclick="selectClass('Assassin')" class="w-full py-4 px-6 bg-rose-950 hover:bg-rose-900 text-left font-semibold text-white rounded-xl transition-all border border-rose-500/30 active:scale-95 flex justify-between items-center">
-                            <span>🗡️ Assassin</span> <span class="text-xs text-rose-400">DEX & INT Focus</span>
-                        </button>
-                        <button onclick="selectClass('Knight')" class="w-full py-4 px-6 bg-slate-800 hover:bg-slate-700 text-left font-semibold text-white rounded-xl transition-all border border-slate-600 active:scale-95 flex justify-between items-center">
-                            <span>🛡️ Knight</span> <span class="text-xs text-slate-400">STR & DEX Focus</span>
-                        </button>
-                    </div>
-                </div>
-            `;
+            view.innerHTML = "<div class='flex-1 flex flex-col justify-center space-y-6'><div class='text-center space-y-2'><h2 class='text-2xl font-bold text-white'>Select Your Class</h2><p class='text-slate-400 text-sm'>Your physical awakening ruleset inside the magical plane.</p></div><div class='flex flex-col space-y-3'><button onclick=\"selectClass('Summoner')\" class='w-full py-4 px-6 bg-indigo-950 hover:bg-indigo-900 text-left font-semibold text-white rounded-xl transition-all border border-indigo-500/30 active:scale-95 flex justify-between items-center'><span>🔮 Summoner</span> <span class='text-xs text-indigo-400'>INT & WIS Focus</span></button><button onclick=\"selectClass('Ranger')\" class='w-full py-4 px-6 bg-emerald-950 hover:bg-emerald-900 text-left font-semibold text-white rounded-xl transition-all border border-emerald-500/30 active:scale-95 flex justify-between items-center'><span>🏹 Ranger</span> <span class='text-xs text-emerald-400'>DEX & WIS Focus</span></button><button onclick=\"selectClass('Assassin')\" class='w-full py-4 px-6 bg-rose-950 hover:bg-rose-900 text-left font-semibold text-white rounded-xl transition-all border border-rose-500/30 active:scale-95 flex justify-between items-center'><span>🗡️ Assassin</span> <span class='text-xs text-rose-400'>DEX & INT Focus</span></button><button onclick=\"selectClass('Knight')\" class='w-full py-4 px-6 bg-slate-800 hover:bg-slate-700 text-left font-semibold text-white rounded-xl transition-all border border-slate-600 active:scale-95 flex justify-between items-center'><span>🛡️ Knight</span> <span class='text-xs text-slate-400'>STR & DEX Focus</span></button></div></div>";
         }
 
         function selectClass(choice) {
             gameState.subType = choice;
-            if (choice === 'Knight') { gameState.stats = { str: 10, dex: 10, int: 5, wis: 5 }; }
-            else if (choice === 'Summoner') { gameState.stats = { str: 5, dex: 5, int: 10, wis: 10 }; }
-            else if (choice === 'Ranger') { gameState.stats = { str: 5, dex: 10, int: 5, wis: 10 }; }
-            else if (choice === 'Assassin') { gameState.stats = { str: 5, dex: 10, int: 10, wis: 5 }; }
+            if (choice === "Knight") { gameState.stats = { str: 10, dex: 10, int: 5, wis: 5 }; }
+            else if (choice === "Summoner") { gameState.stats = { str: 5, dex: 5, int: 10, wis: 10 }; }
+            else if (choice === "Ranger") { gameState.stats = { str: 5, dex: 10, int: 5, wis: 10 }; }
+            else if (choice === "Assassin") { gameState.stats = { str: 5, dex: 10, int: 10, wis: 5 }; }
             initCharacterCreation();
         }
 
         function initCharacterCreation() {
-            view.innerHTML = `
-                <div class="flex-1 flex flex-col justify-center space-y-5">
-                    <div class="text-center space-y-1">
-                        <h2 class="text-xl font-bold text-white">Identity Awakening</h2>
-                        <p class="text-slate-400 text-sm">Etch your parameters into the tapestry.</p>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="block text-xs font-semibold tracking-wider text-slate-400 uppercase">True Name</label>
-                        <input id="char-name" type="text" placeholder="Enter name..." class="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white font-medium focus:outline-none focus:border-indigo-500 text-base">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="block text-xs font-semibold tracking-wider text-slate-400 uppercase">Are you Male, Female, or Non-Binary?</label>
-                        <div class="grid grid-cols-3 gap-2">
-                            <button onclick="setStateVar(this, 'gender', 'Male', 'g-btn')" class="g-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all">Male</button>
-                            <button onclick="setStateVar(this, 'gender', 'Female', 'g-btn')" class="g-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all">Female</button>
-                            <button onclick="setStateVar(this, 'gender', 'Non-Binary', 'g-btn')" class="g-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all">Non-Binary</button>
-                        </div>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="block text-xs font-semibold tracking-wider text-slate-400 uppercase">Who catches your eye in this realm?</label>
-                        <div class="grid grid-cols-3 gap-2">
-                            <button onclick="setStateVar(this, 'partnerPref', 'Female', 'p-btn')" class="p-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all">Women</button>
-                            <button onclick="setStateVar(this, 'partnerPref', 'Male', 'p-btn')" class="p-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all">Men</button>
-                            <button onclick="setStateVar(this, 'partnerPref', 'Non-Binary', 'p-btn')" class="p-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all">Fluid</button>
-                        </div>
-                    </div>
-                    <button onclick="submitCharacter()" class="w-full mt-2 py-3.5 bg-indigo-600 hover:bg-indigo-500 font-bold text-white rounded-xl active:scale-95 transition-all shadow-lg shadow-indigo-900/20">
-                        Cross the Threshold ⚡
-                    </button>
-                </div>
-            `;
+            view.innerHTML = "<div class='flex-1 flex flex-col justify-center space-y-5'><div class='text-center space-y-1'><h2 class='text-xl font-bold text-white'>Identity Awakening</h2><p class='text-slate-400 text-sm'>Etch your parameters into the tapestry.</p></div><div class='space-y-1'><label class='block text-xs font-semibold tracking-wider text-slate-400 uppercase'>True Name</label><input id='char-name' type='text' placeholder='Enter name...' class='w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white font-medium focus:outline-none focus:border-indigo-500 text-base'></div><div class='space-y-1'><label class='block text-xs font-semibold tracking-wider text-slate-400 uppercase'>Are you Male, Female, or Non-Binary?</label><div class='grid grid-cols-3 gap-2'><button onclick=\"setStateVar(this, 'gender', 'Male', 'g-btn')\" class='g-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all'>Male</button><button onclick=\"setStateVar(this, 'gender', 'Female', 'g-btn')\" class='g-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all'>Female</button><button onclick=\"setStateVar(this, 'gender', 'Non-Binary', 'g-btn')\" class='g-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all'>Non-Binary</button></div></div><div class='space-y-1'><label class='block text-xs font-semibold tracking-wider text-slate-400 uppercase'>Who catches your eye in this realm?</label><div class='grid grid-cols-3 gap-2'><button onclick=\"setStateVar(this, 'partnerPref', 'Female', 'p-btn')\" class='p-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all'>Women</button><button onclick=\"setStateVar(this, 'partnerPref', 'Male', 'p-btn')\" class='p-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all'>Men</button><button onclick=\"setStateVar(this, 'partnerPref', 'Non-Binary', 'p-btn')\" class='p-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all'>Fluid</button></div></div><button onclick='submitCharacter()' class='w-full mt-2 py-3.5 bg-indigo-600 hover:bg-indigo-500 font-bold text-white rounded-xl active:scale-95 transition-all shadow-lg shadow-indigo-900/20'>Cross the Threshold ⚡</button></div>";
+        }
+
+        function setStateVar(btnElement, variable, value, groupClass) {
+            document.querySelectorAll("." + groupClass).forEach(btn => {
+                btn.classList.remove("bg-indigo-600", "text-white", "border-indigo-500");
+                btn.classList.add("bg-slate-800", "text-slate-300", "border-slate-700");
+            });
+            btnElement.classList.remove("bg-slate-800", "text-slate-300", "border-slate-700");
+            btnElement.classList.add("bg-indigo-600", "text-white", "border-indigo-500");
+            gameState[variable] = value;
+        }
+
+        function submitCharacter() {
+            const inputName = document.getElementById("char-name").value.trim();
+            if (!inputName) return alert("A name is strictly required.");
+            if (!gameState.gender) return alert("Please select your identity profile.");
+            if (!gameState.partnerPref) return alert("Please select your companion preference.");
+            gameState.name = inputName;
+            
+            localStorage.removeItem("isekai_chronicles_save");
+            updateHUD();
+            renderStoryLoop();
         }
 
         function handleDiceRoll(actionTaken, outcomeText, statType, scoreMod, customFailText = "") {
@@ -449,47 +424,20 @@
             let finalAffinityMod = scoreMod;
 
             if (isSuccess) {
-                resultTitle = `<span class="text-emerald-400 font-bold">🎯 CHECK SUCCESS (Rolled ${dieRoll} + Stat ${playerStatValue} = ${checkTotal} vs DC ${targetDC})</span>`;
+                resultTitle = "<span class='text-emerald-400 font-bold'>🎯 CHECK SUCCESS (Rolled " + dieRoll + " + Stat " + playerStatValue + " = " + checkTotal + " vs DC " + targetDC + ")</span>";
                 resultBody = outcomeText;
             } else {
-                resultTitle = `<span class="text-rose-400 font-bold">❌ CHECK FAILURE (Rolled ${dieRoll} + Stat ${playerStatValue} = ${checkTotal} vs DC ${targetDC})</span>`;
-                
-                if (customFailText && customFailText !== "undefined" && customFailText !== "") {
-                    resultBody = customFailText;
-                } else {
-                    resultBody = `Your timing falters under stress. You clear the encounter clumsily, but your tactical failure leaves your partner exposed to structural danger.`;
-                }
+                resultTitle = "<span class='text-rose-400 font-bold'>❌ CHECK FAILURE (Rolled " + dieRoll + " + Stat " + playerStatValue + " = " + checkTotal + " vs DC " + targetDC + ")</span>";
+                resultBody = (customFailText && customFailText !== "") ? customFailText : "Your timing falters under stress. You clear the encounter clumsily.";
                 finalAffinityMod = -1; 
             }
 
             gameState.romanceScore += finalAffinityMod;
-            let affinityIconHTML = `<span>⚖️ Affinity Unchanged</span>`;
-            if (finalAffinityMod > 0) affinityIconHTML = `<span class="text-emerald-400 font-semibold">💘 Affinity Increased (+${finalAffinityMod})</span>`;
-            if (finalAffinityMod < 0) affinityIconHTML = `<span class="text-rose-400 font-semibold">💔 Affinity Decreased (${finalAffinityMod})</span>`;
+            let affinityIconHTML = "<span>⚖️ Affinity Unchanged</span>";
+            if (finalAffinityMod > 0) affinityIconHTML = "<span class='text-emerald-400 font-semibold'>💘 Affinity Increased (+" + finalAffinityMod + ")</span>";
+            if (finalAffinityMod < 0) affinityIconHTML = "<span class='text-rose-400 font-semibold'>💔 Affinity Decreased (" + finalAffinityMod + ")</span>";
 
-            view.innerHTML = `
-                <div class="flex-1 flex flex-col justify-between h-full">
-                    <div class="flex-1 overflow-y-auto space-y-4">
-                        <div class="bg-slate-950 p-4 border border-slate-800 rounded-xl space-y-1">
-                            <span class="text-[10px] font-mono tracking-wider text-indigo-400 uppercase block font-bold">${resultTitle}</span>
-                            <p class="text-xs text-slate-400 italic">${actionTaken}</p>
-                        </div>
-                        <div class="space-y-2 pt-2">
-                            <span class="text-[10px] font-mono tracking-wider text-amber-400 uppercase block font-bold">Result Outcome</span>
-                            <p class="text-slate-200 leading-relaxed text-sm">${resultBody}</p>
-                        </div>
-                    </div>
-                    <div class="space-y-4 pt-4 border-t border-slate-800 shrink-0 bg-slate-900">
-                        <div class="text-center text-xs">
-                            ${affinityIconHTML}
-                        </div>
-                        <button onclick="processChapterProgression()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl active:scale-95 transition-all text-center flex justify-center items-center space-x-2 shadow-lg shadow-indigo-900/20">
-                            <span>Advance Journey</span>
-                            <span class="font-mono text-sm">▶</span>
-                        </button>
-                    </div>
-                </div>
-            `;
+            view.innerHTML = "<div class='flex-1 flex flex-col justify-between h-full'><div class='flex-1 overflow-y-auto space-y-4'><div class='bg-slate-950 p-4 border border-slate-800 rounded-xl space-y-1'><span class='text-[10px] font-mono tracking-wider text-indigo-400 uppercase block font-bold'>" + resultTitle + "</span><p class='text-xs text-slate-400 italic'>" + actionTaken + "</p></div><div class='space-y-2 pt-2'><span class='text-[10px] font-mono tracking-wider text-amber-400 uppercase block font-bold'>Result Outcome</span><p class='text-slate-200 leading-relaxed text-sm'>" + resultBody + "</p></div></div><div class='space-y-4 pt-4 border-t border-slate-800 shrink-0 bg-slate-900'><div class='text-center text-xs'>" + affinityIconHTML + "</div><button onclick='processChapterProgression()' class='w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl active:scale-95 transition-all text-center flex justify-center items-center space-x-2 shadow-lg shadow-indigo-900/20'><span>Advance Journey</span><span class='font-mono text-sm'>▶</span></button></div></div>";
         }
 
         function processChapterProgression() {
@@ -503,31 +451,12 @@
 
         function renderBonusStatScreen() {
             updateHUD();
-            
-            const statButtons = ['str', 'dex', 'int', 'wis'].map(s => {
+            const statButtons = ["str", "dex", "int", "wis"].map(s => {
                 const mainLabel = isMainStat(s) ? "<span class='text-[9px] bg-indigo-950 text-indigo-400 px-1.5 py-0.5 rounded ml-2 font-bold'>MAIN</span>" : "";
-                const buttonDisabled = isMainStat(s) ? "disabled class='w-full py-3 px-4 bg-slate-950 text-slate-600 border border-slate-900 text-left rounded-xl flex justify-between items-center cursor-not-allowed'" : `onclick="applyBonusStatPoint('${s}')" class="w-full py-3 px-4 bg-amber-950/40 hover:bg-amber-900/60 border border-amber-500/30 hover:border-amber-400 text-left text-amber-100 font-medium rounded-xl transition-all flex justify-between items-center active:scale-98"`;
-                
-                return `
-                    <button ${buttonDisabled}>
-                        <span class="text-xs font-semibold tracking-wider uppercase font-mono">${s === 'str' ? '💪 Strength' : s === 'dex' ? '👟 Dexterity' : s === 'int' ? '📜 Intelligence' : '👁️ Wisdom'} (Current: ${gameState.stats[s]})</span>
-                        ${mainLabel || "<span class='text-xs text-amber-400 font-bold'>+2 Points ▶</span>"}
-                    </button>
-                `;
-            }).join('');
-
-            view.innerHTML = `
-                <div class="flex-1 flex flex-col justify-center space-y-5">
-                    <div class="text-center space-y-1">
-                        <span class="text-xs bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-full font-mono font-bold tracking-wider uppercase">Act Milestone Conquered</span>
-                        <h2 class="text-xl font-bold text-white pt-2">Versatility Attribute Training</h2>
-                        <p class="text-slate-400 text-sm leading-relaxed">You have hit an Act threshold. Allocate <span class="text-amber-400 font-bold font-mono">+2 Bonus Points</span> to a non-primary attribute to bolster your saving throws.</p>
-                    </div>
-                    <div class="flex flex-col space-y-2.5">
-                        ${statButtons}
-                    </div>
-                </div>
-            `;
+                const buttonDisabled = isMainStat(s) ? "disabled class='w-full py-3 px-4 bg-slate-950 text-slate-600 border border-slate-900 text-left rounded-xl flex justify-between items-center cursor-not-allowed'" : "onclick=\"applyBonusStatPoint('" + s + "')\" class='w-full py-3 px-4 bg-amber-950/40 hover:bg-amber-900/60 border border-amber-500/30 hover:border-amber-400 text-left text-amber-100 font-medium rounded-xl transition-all flex justify-between items-center active:scale-98'";
+                return "<button " + buttonDisabled + "><span class='text-xs font-semibold tracking-wider uppercase font-mono'>" + (s === "str" ? "💪 Strength" : s === "dex" ? "👟 Dexterity" : s === "int" ? "📜 Intelligence" : "👁️ Wisdom") + " (Current: " + gameState.stats[s] + ")</span>" + (mainLabel || "<span class='text-xs text-amber-400 font-bold'>+2 Points ▶</span>") + "</button>";
+            }).join("");
+            view.innerHTML = "<div class='flex-1 flex flex-col justify-center space-y-5'><div class='text-center space-y-1'><span class='text-xs bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-full font-mono font-bold tracking-wider uppercase'>Act Milestone Conquered</span><h2 class='text-xl font-bold text-white pt-2'>Versatility Attribute Training</h2><p class='text-slate-400 text-sm leading-relaxed'>Allocate +2 Bonus Points to a non-primary attribute.</p></div><div class='flex flex-col space-y-2.5'>" + statButtons + "</div></div>";
         }
 
         function applyBonusStatPoint(targetStat) {
@@ -541,14 +470,21 @@
             } else {
                 gameState.currentChapter++;
                 const ch = gameState.currentChapter;
-                
                 if (ch === 21 || ch === 41 || ch === 61 || ch === 81) {
                     for (let s in gameState.stats) {
                         gameState.stats[s] += isMainStat(s) ? 4 : 2;
                     }
                 }
-
                 recompileSaveState();
+                renderStoryLoop();
+            }
+        }
+
+        function resumeSavedGame() {
+            const savedState = checkExistingSave();
+            if (savedState) {
+                gameState = savedState;
+                updateHUD();
                 renderStoryLoop();
             }
         }
@@ -560,98 +496,32 @@
             const chData = getChapterData(ch, partner);
             let choices = [...chData.options];
 
-            const runtimeDescriptionText = `
-                <div class="space-y-3">
-                    <p class="text-slate-300 leading-relaxed font-normal">${chData.desc}</p>
-                </div>
-                <div class="mt-4 pt-3 border-t border-slate-800/60 grid grid-cols-4 gap-1 text-[10px] font-mono text-center text-slate-400 bg-slate-950/40 p-2 rounded-xl">
-                    <div>💪 STR: <span class="text-white font-bold">${gameState.stats.str}</span></div>
-                    <div>👟 DEX: <span class="text-white font-bold">${gameState.stats.dex}</span></div>
-                    <div>📜 INT: <span class="text-white font-bold">${gameState.stats.int}</span></div>
-                    <div>👁️ WIS: <span class="text-white font-bold">${gameState.stats.wis}</span></div>
-                </div>
-                <div class="mt-2 flex justify-between text-[11px] text-slate-500 font-mono">
-                    <span>📱 PHONE: ${(100 - (ch * 0.4)).toFixed(0)}%</span>
-                    <span>💘 AFFINITY: ${gameState.romanceScore}</span>
-                </div>
-            `;
+            const runtimeDescriptionText = "<div class='space-y-3'><p class='text-slate-300 leading-relaxed font-normal'>" + chData.desc + "</p></div><div class='mt-4 pt-3 border-t border-slate-800/60 grid grid-cols-4 gap-1 text-[10px] font-mono text-center text-slate-400 bg-slate-950/40 p-2 rounded-xl'><div>💪 STR: <span class='text-white font-bold'>" + gameState.stats.str + "</span></div><div>👟 DEX: <span class='text-white font-bold'>" + gameState.stats.dex + "</span></div><div>📜 INT: <span class='text-white font-bold'>" + gameState.stats.int + "</span></div><div>👁️ WIS: <span class='text-white font-bold'>" + gameState.stats.wis + "</span></div></div><div class='mt-2 flex justify-between text-[11px] text-slate-500 font-mono'><span>📱 PHONE: " + (100 - (ch * 0.4)).toFixed(0) + "%</span><span>💘 AFFINITY: " + gameState.romanceScore + "</span></div>";
 
             const buttonsHTML = choices.map(choice => {
-                const escapedOutcome = choice.textOutcome.replace(/"/g, '&quot;').replace(/'/g, "\\'");
-                const escapedAction = choice.text.replace(/"/g, '&quot;').replace(/'/g, "\\'");
-                const escapedFail = (choice.failRes || "").replace(/"/g, '&quot;').replace(/'/g, "\\'");
-                
-                return `
-                    <button onclick="handleDiceRoll('${escapedAction}', '${escapedOutcome}', '${choice.stat}', ${choice.romance || 0}, '${escapedFail}')" class="w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 active:bg-indigo-900 border border-slate-700 hover:border-indigo-500 text-left text-white font-medium rounded-xl transition-all flex items-center space-x-3 group">
-                        <span class="flex-1 text-xs md:text-sm leading-snug">${choice.text}</span>
-                        <span class="text-slate-500 group-hover:text-indigo-400 text-xs font-bold font-mono shrink-0">🎲</span>
-                    </button>
-                `;
-            }).join('');
+                const escapedOutcome = choice.textOutcome.replace(/"/g, "&quot;").replace(/'/g, "\\'");
+                const escapedAction = choice.text.replace(/"/g, "&quot;").replace(/'/g, "\\'");
+                const escapedFail = (choice.failRes || "").replace(/"/g, "&quot;").replace(/'/g, "\\'");
+                return "<button onclick=\"handleDiceRoll('" + escapedAction + "', '" + escapedOutcome + "', '" + choice.stat + "', " + (choice.romance || 0) + ", '" + escapedFail + "')\" class='w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 active:bg-indigo-900 border border-slate-700 hover:border-indigo-500 text-left text-white font-medium rounded-xl transition-all flex items-center space-x-3 group'><span class='flex-1 text-xs md:text-sm leading-snug'>" + choice.text + "</span><span class='text-slate-500 group-hover:text-indigo-400 text-xs font-bold font-mono shrink-0'>🎲</span></button>";
+            }).join("");
 
-            view.innerHTML = `
-                <div class="w-full flex-1 flex flex-col justify-between h-full">
-                    <div class="flex-1 pr-1 overflow-y-auto space-y-4 mb-4">
-                        ${runtimeDescriptionText}
-                    </div>
-                    <div class="space-y-2 shrink-0 pt-2 bg-slate-900">
-                        ${buttonsHTML}
-                    </div>
-                </div>
-            `;
+            view.innerHTML = "<div class='w-full flex-1 flex flex-col justify-between h-full'><div class='flex-1 pr-1 overflow-y-auto space-y-4 mb-4'>" + runtimeDescriptionText + "</div><div class='space-y-2 shrink-0 pt-2 bg-slate-900'>" + buttonsHTML + "</div></div>";
         }
 
         function renderEndGameScreen() {
-            hud.classList.add('hidden');
-            let endTitle = "";
-            let endBody = "";
-            let bgClass = "";
+            hud.classList.add("hidden");
             const partner = getRomancePartner();
             const finalScore = gameState.romanceScore;
-
-            localStorage.removeItem('isekai_chronicles_save');
-
-            if (finalScore >= 30) {
-                bgClass = "border-emerald-500/30 bg-emerald-950/20";
-                endTitle = "🏆 True Romance Ending: Bond Eternal";
-                endBody = `The dark rifts are permanently sealed. Your phone screen goes completely black as its battery drains to zero—but it doesn't matter anymore. Turning your back on Earth entirely, you pull ${partner.name} into a deep kiss as a peaceful new kingdom unfurls before you. Your choices, culminating in a final heroic sacrifice, secured an absolute, legendary lifetime together. Campaign Complete!`;
-            } else if (finalScore >= 10 && finalScore < 30) {
-                bgClass = "border-cyan-500/30 bg-cyan-950/20";
-                endTitle = "⚔️ Vanguard Ending: Solo Legend";
-                endBody = `The realm is decisively saved. You choose to remain in this world, rising to prominence as a legendary Grand Champion of the realm. However, your connection with ${partner.name} remained balanced and strictly professional. You walk the battlements as trusted companions-in-arms, sharing mutual respect, but your romantic paths diverge as you rule separately.`;
-            } else if (finalScore >= 0 && finalScore < 10) {
-                bgClass = "border-amber-500/30 bg-amber-950/20";
-                endTitle = "⏳ Lonely Ending: A World Apart";
-                endBody = `The world is saved, but your consistent emphasis on returning home created an unbridgeable distance. A final, shimmering rift manifests before you. Without looking back, ${partner.name} leaves for the wild woods. You step through the gate alone, waking up back in your quiet Earth room. All you have left is a dead phone and memories of a magical world that will never see you again.`;
-            } else {
-                bgClass = "border-rose-500/30 bg-rose-950/20";
-                endTitle = "💀 Bad Ending: Broken Lineage";
-                endBody = `Your antagonistic decision paths completely fractured your party synergy mechanics. Under the pressure of the final battle, your tactical lines collapsed completely. ${partner.name} fell in battle trying to absorb a blow meant for you, and the unchecked rift overloads, consuming the entire kingdom in an explosion of dark energy. Total timeline failure.`;
-            }
-
-            view.innerHTML = `
-                <div class="flex-1 flex flex-col justify-center space-y-6">
-                    <div class="p-6 border rounded-2xl ${bgClass} space-y-4">
-                        <h2 class="text-xl font-bold text-center text-white">${endTitle}</h2>
-                        <p class="text-slate-300 text-sm leading-relaxed text-center">${endBody}</p>
-                    </div>
-                    <div class="space-y-2 text-center text-xs text-slate-500 font-mono">
-                        <p>Final Log: ${gameState.name} | ${gameState.subType}</p>
-                        <p>Final Affinity Score: [${finalScore}]</p>
-                    </div>
-                    <button onclick="resetGame()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 font-bold text-white rounded-xl active:scale-95 transition-all">
-                        Return to Gate Hub 🔁
-                    </button>
-                </div>
-            `;
+            localStorage.removeItem("isekai_chronicles_save");
+            view.innerHTML = "<div class='flex-1 flex flex-col justify-center space-y-6'><div class='p-6 border rounded-2xl border-emerald-500/30 bg-emerald-950/20 space-y-4'><h2 class='text-xl font-bold text-center text-white'>Campaign Complete</h2><p class='text-slate-300 text-sm leading-relaxed text-center'>Your journey through the timeline is complete.</p></div><div class='space-y-2 text-center text-xs text-slate-500 font-mono'><p>Final Score: [" + finalScore + "]</p></div><button onclick='resetGame()' class='w-full py-4 bg-indigo-600 hover:bg-indigo-500 font-bold text-white rounded-xl active:scale-95 transition-all'>Return to Gate Hub 🔁</button></div>";
         }
 
         function resetGame() {
-            gameState = { subType: '', name: '', gender: '', partnerPref: '', currentChapter: 1, romanceScore: 0, stats: { str: 5, dex: 5, int: 5, wis: 5 } };
+            gameState = { subType: "", name: "", gender: "", partnerPref: "", currentChapter: 1, romanceScore: 0, stats: { str: 5, dex: 5, int: 5, wis: 5 } };
             initMainMenu();
         }
 
-        // INITIALIZE PIPELINE EXECUTION
+        // Boot Main Menu
         initMainMenu();
     </script>
 </body>
