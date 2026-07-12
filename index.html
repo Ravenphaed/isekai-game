@@ -36,12 +36,12 @@
     </div>
 
     <script>
-        // Open Architecture Player State
+        // Core Game State Model
         let gameState = {
             subType: '',       // 'Summoner' | 'Ranger' | 'Assassin' | 'Knight'
             name: '',
-            gender: '',        // Player Gender identity
-            partnerPref: '',   // 'Female' | 'Male' | 'Non-Binary' -> Unrestricted choice
+            gender: '',        
+            partnerPref: '',   
             currentChapter: 1, 
             romanceScore: 0,   
         };
@@ -50,7 +50,19 @@
         const hud = document.getElementById('hud-stats');
         const hudAct = document.getElementById('hud-act');
 
-        // Dynamically sets the header text based on current story arc progression
+        // Check Local Storage for active save profiles
+        function checkExistingSave() {
+            const localData = localStorage.getItem('isekai_chronicles_save');
+            if (localData) {
+                try {
+                    return JSON.parse(localData);
+                } catch(e) {
+                    return null;
+                }
+            }
+            return null;
+        }
+
         function updateHUD() {
             const ch = gameState.currentChapter;
             if (ch <= 20) hudAct.innerText = "Act I: The Awakening";
@@ -68,9 +80,47 @@
             }
         }
 
-        // Phase 1: Pure Fantasy Class Selection Screen
-        function initClassScreen() {
+        // Main Menu Entry Point with persistence verification
+        function initMainMenu() {
             updateHUD();
+            const savedState = checkExistingSave();
+            
+            let resumeButtonHTML = "";
+            if (savedState && savedState.currentChapter > 1 && savedState.currentChapter <= 100) {
+                resumeButtonHTML = `
+                    <button onclick="resumeSavedGame()" class="w-full py-4 px-6 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl transition-all border border-amber-500/30 active:scale-95 flex justify-between items-center shadow-lg shadow-amber-900/20">
+                        <span>📜 Resume Journey</span>
+                        <span class="text-xs bg-amber-950/50 px-2 py-1 rounded">Ch ${savedState.currentChapter}</span>
+                    </button>
+                `;
+            }
+
+            view.innerHTML = `
+                <div class="flex-1 flex flex-col justify-center space-y-6">
+                    <div class="text-center space-y-2">
+                        <h2 class="text-3xl font-bold text-white tracking-tight">Isekai Realms</h2>
+                        <p class="text-slate-400 text-sm">Cross the dimensional gate into the D&D ruleset.</p>
+                    </div>
+                    <div class="flex flex-col space-y-3">
+                        ${resumeButtonHTML}
+                        <button onclick="initClassScreen()" class="w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-center rounded-xl transition-all border border-indigo-500/30 active:scale-95 shadow-lg shadow-indigo-900/20">
+                            ✨ Begin New Awakening
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function resumeSavedGame() {
+            const savedState = checkExistingSave();
+            if (savedState) {
+                gameState = savedState;
+                updateHUD();
+                renderStoryLoop();
+            }
+        }
+
+        function initClassScreen() {
             view.innerHTML = `
                 <div class="flex-1 flex flex-col justify-center space-y-6">
                     <div class="text-center space-y-2">
@@ -100,7 +150,6 @@
             initCharacterCreation();
         }
 
-        // Phase 2: Enhanced Character Creation with Romance Track Preference
         function initCharacterCreation() {
             view.innerHTML = `
                 <div class="flex-1 flex flex-col justify-center space-y-5">
@@ -123,13 +172,12 @@
                         </div>
                     </div>
 
-                    <!-- Romance Preference Selector (Fully Open/Player-Controlled) -->
                     <div class="space-y-1">
                         <label class="block text-xs font-semibold tracking-wider text-slate-400 uppercase">Who catches your eye in this realm?</label>
                         <div class="grid grid-cols-3 gap-2">
                             <button onclick="setStateVar(this, 'partnerPref', 'Female', 'p-btn')" class="p-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all">Women</button>
                             <button onclick="setStateVar(this, 'partnerPref', 'Male', 'p-btn')" class="p-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all">Men</button>
-                            <button onclick="setStateVar(this, 'partnerPref', 'Non-Binary', 'p-btn')" class="p-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all">Either / Fluid</button>
+                            <button onclick="setStateVar(this, 'partnerPref', 'Non-Binary', 'p-btn')" class="p-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all">Fluid</button>
                         </div>
                     </div>
 
@@ -156,11 +204,13 @@
             if (!gameState.gender) return alert('Please select your identity profile.');
             if (!gameState.partnerPref) return alert('Please select your companion preference.');
             gameState.name = inputName;
+            
+            // Wipe clean any old storage when explicitly launching a clean campaign
+            localStorage.removeItem('isekai_chronicles_save');
             updateHUD();
             renderStoryLoop();
         }
 
-        // Dynamic Cast Matrix based on explicit User Preference selection
         function getRomancePartner() {
             const pref = gameState.partnerPref;
             if (pref === 'Female') return { name: 'Lyra', role: 'the Fierce Elven Ranger' };
@@ -170,67 +220,74 @@
 
         // Deep Narrative Act Database System
         const actData = {
-            1: { // Act I Chapters 1-20
+            1: { 
                 exploration: [
                     { text: "A massive briar patch tangled with low-level toxic thorns blocks the overgrown path ahead.", type: "Beast", perkClass: "Ranger",
                       options: [
-                          { text: "🍎 [Sleight of Hand] Carefully feed wild berries to local woodland critters to clear a path", romance: 1 },
-                          { text: "🗣️ [Charisma (Intimidation)] Brandish a torch and scream to clear the minor thickets", romance: -1 },
-                          { text: "⚔️ [Dexterity (Acrobatics)] Carefully attempt to climb and leap across the high branches", romance: 0 },
-                          { text: "🐾 [Class: Ranger] Apply Natural Kinship to guide the foliage vines safely aside", romance: 2 }
+                          { text: "🍎 [Sleight of Hand] Carefully feed wild berries to local woodland critters to clear a path", romance: 1, textOutcome: "You successfully distract the woodland creatures. They happily gather the fruit, trampling down the thickets and creating a safe, open passage forward." },
+                          { text: "🗣️ [Charisma (Intimidation)] Brandish a torch and scream to clear the minor thickets", romance: -1, textOutcome: "Your sudden aggressive shouting startled a swarm of nesting hornets inside the thicket. You manage to retreat, but the harsh noise irritated your companion." },
+                          { text: "⚔️ [Dexterity (Acrobatics)] Carefully attempt to climb and leap across the high branches", romance: 0, textOutcome: "With careful foot placement, you scale the side limbs and safely vault completely over the barrier, landing smoothly on the opposite dirt track." },
+                          { text: "🐾 [Class: Ranger] Apply Natural Kinship to guide the foliage vines safely aside", romance: 2, textOutcome: "Tapping into your deep connection with nature, you whistle softly. The briar vines visibly relax and pull back into the earth, completely clearing the road." }
                       ]}
                 ],
                 combat: "A feral pack of wild dire-wolves cuts through the brush, hunting your unfamiliar presence."
             },
-            2: { // Act II Chapters 21-40
+            2: { 
                 exploration: [
                     { text: "A heavy ironwood gate seals the entrance to the Borderlands Adventurers Guild house.", type: "Door", perkClass: "Assassin",
                       options: [
-                          { text: "💥 [Strength (Athletics)] Attempt to smash your shoulder cleanly into the lock bracket", romance: 0 },
-                          { text: "✊ [Charisma (Persuasion)] State your purpose loudly to the eye-slot, requesting entry", romance: 1 },
-                          { text: "🌿 [Intelligence (Investigation)] Scan the stonework framework for a hidden latch key", romance: -1 },
-                          { text: "🔑 [Class: Assassin] Slip your thieves' picks into the keyway and seamlessly trip the pins", romance: 2 }
+                          { text: "💥 [Strength (Athletics)] Attempt to smash your shoulder cleanly into the lock bracket", romance: 0, textOutcome: "You violently ram the wood paneling. The latch holds firm, bruising your shoulder slightly, though the loud thud catches the attention of a nearby guild porter." },
+                          { text: "✊ [Charisma (Persuasion)] State your purpose loudly to the eye-slot, requesting entry", romance: 1, textOutcome: "Your calm, authoritative explanation convinces the gate warden inside. The iron slide retracts, and the grand entry gates swing open smoothly." },
+                          { text: "🌿 [Intelligence (Investigation)] Scan the stonework framework for a hidden latch key", romance: -1, textOutcome: "You waste valuable time checking the cracks. The structural alignment yields nothing, leaving you exposed while the guild guards watch your suspicious behavior." },
+                          { text: "🔑 [Class: Assassin] Slip your thieves' picks into the keyway and seamlessly trip the pins", romance: 2, textOutcome: "Your fingers move with silent grace. Within seconds, a satisfying click echoes inside the lock housing, and the frame glides open without a sound." }
                       ]}
                 ],
                 combat: "A corrupt squad of local extortionist mercenary guards blocks the cobblestone bridge crossing."
             },
-            3: { // Act III Chapters 41-60
+            3: { 
                 exploration: [
                     { text: "An ancient, highly volatile magical font hums inside a dark cavern fissure, leaking raw elements.", type: "Arcane", perkClass: "Summoner",
                       options: [
-                          { text: "📜 [Intelligence (Arcana)] Perform a containment seal chant to ground the core magic", romance: 1 },
-                          { text: "🏃 [Dexterity (Stealth)] Quietly stick to the dark cavern wall shadows to avoid catching aggro", romance: 0 },
-                          { text: "🪨 [Strength (Athletics)] Hurl heavy cavern stalactites to break the font's power source lines", romance: -1 },
-                          { text: "🔮 [Class: Summoner] Call forth your ethereal companion animal to siphon the elemental drift away", romance: 2 }
+                          { text: "📜 [Intelligence (Arcana)] Perform a containment seal chant to ground the core magic", romance: 1, textOutcome: "Your precise focus strings stabilize the unstable elemental leaks, calming the atmospheric air and safely anchoring the active fonts." },
+                          { text: "🏃 [Dexterity (Stealth)] Quietly stick to the dark cavern wall shadows to avoid catching aggro", romance: 0, textOutcome: "Pressing your back flat against the cool granite framework, you slowly crawl completely past the radius without disturbing the core." },
+                          { text: "🪨 [Strength (Athletics)] Hurl heavy cavern stalactites to break the font's power source lines", romance: -1, textOutcome: "The heavy impacts shatter the surrounding crystals, causing a miniature magical backlash that leaves you singed and your party ears ringing." },
+                          { text: "🔮 [Class: Summoner] Call forth your ethereal companion animal to siphon the elemental drift away", romance: 2, textOutcome: "Your pet familiar steps forward, opening its jaw to inhale the floating raw energy particles, cleanly neutralizing the hazard while charging its own power." }
                       ]}
                 ],
                 combat: "Shadow-cultists of the High Demon Lord ambush your camp from the absolute darkness of the cavern."
             },
-            4: { // Act IV Chapters 61-80
+            4: { 
                 exploration: [
                     { text: "A heavily armored Citadel Sentinel stands watch over the lower barracks armory tunnel entry corridor.", type: "Guard", perkClass: "Knight",
                       options: [
-                          { text: "🪙 [Charisma (Deception)] Feign a panic alarm elsewhere to convince the guard to rotate vectors", romance: -1 },
-                          { text: "👑 [Charisma (Persuasion)] Appeal to their honor regarding the incoming global siege line threat", romance: 1 },
-                          { text: "👟 [Dexterity (Stealth)] Wait for the torch-fire to flicker down and attempt a shadow slip bypass", romance: 0 },
-                          { text: "🛡️ [Class: Knight] Flaunt your high-order Vanguard Bulwark crest to claim absolute command status", romance: 2 }
+                          { text: "🪙 [Charisma (Deception)] Feign a panic alarm elsewhere to convince the guard to rotate vectors", romance: -1, textOutcome: "The guard registers your fabricated emergency but calls for structural backup instead of moving, leaving the entry vector tightly blocked." },
+                          { text: "👑 [Charisma (Persuasion)] Appeal to their honor regarding the incoming global siege line threat", romance: 1, textOutcome: "Your genuine appeal resonates with the warrior's code. Realizing the vital urgency of your quest line, the sentinel steps aside with a salute." },
+                          { text: "👟 [Dexterity (Stealth)] Wait for the torch-fire to flicker down and attempt a shadow slip bypass", romance: 0, textOutcome: "You time the guard's exact head rotation, slipping noiselessly into the dark alcove and past the post without creating a single footprint." },
+                          { text: "🛡️ [Class: Knight] Flaunt your high-order Vanguard Bulwark crest to claim absolute command status", romance: 2, textOutcome: "The sentinel instantly recognizes the legendary guild alignment crest, snapping to strict military attention and granting you full access parameters." }
                       ]}
                 ],
                 combat: "An elite crimson Wyvern dives down from the battlements, breathing fire onto your positions."
             },
-            5: { // Act V Chapters 81-100
+            5: { 
                 exploration: [
                     { text: "The inner sanctum door is bound by a massive blood-magic sigil that actively burns anyone who nears.", type: "Arcane", perkClass: "Summoner",
                       options: [
-                          { text: "📜 [Intelligence (Arcana)] Attempt to carefully rewrite the runic parameters by hand", romance: 1 },
-                          { text: "💥 [Strength (Athletics)] Throw yourself directly into the shield to brute-force break it", romance: -1 },
-                          { text: "🌿 [Intelligence (Investigation)] Search for the linked focus mirrors nearby to disrupt the light", romance: 0 },
-                          { text: "🔮 [Class: Summoner] Summon your familiar to sacrifice its mana pool to safely pop the sigil", romance: 2 }
+                          { text: "📜 [Intelligence (Arcana)] Attempt to carefully rewrite the runic parameters by hand", romance: 1, textOutcome: "Your careful structural analysis unweaves the host sigil line by line, cleanly safely dissipating the crimson energy trap." },
+                          { text: "💥 [Strength (Athletics)] Throw yourself directly into the shield to brute-force break it", romance: -1, textOutcome: "The feedback pulse hits hard, throwing you backward across the floor. Your armor absorbed the brunt, but the reckless pain strains group morale." },
+                          { text: "🌿 [Intelligence (Investigation)] Search for the linked focus mirrors nearby to disrupt the light", romance: 0, textOutcome: "You discover two reflective crystals embedded in the archway, angling them away to disrupt the blood supply beams and safely dim the seal." },
+                          { text: "🔮 [Class: Summoner] Summon your familiar to sacrifice its mana pool to safely pop the sigil", romance: 2, textOutcome: "Your loyal spirit summon intercepts the runic lock loop, short-circuiting the blood circle entirely at the cost of its local manifestation." }
                       ]}
                 ],
                 combat: "The High Demon Lord's Elite Obsidian Golem steps forward, slamming its granite fists down."
             }
         };
+
+        const combatOptionsPool = [
+            { text: "⚔️ [Dexterity (Acrobatics)] Coordinate a swift flanking combo attack with your companion", romance: 1, textOutcome: "You seamlessly time your advance with your companion's movement, exposing the enemy's blind spot and striking hard together!" },
+            { text: "🛡️ [Strength (Athletics)] Step forward to aggressively draw the enemy's line of fire onto your position", romance: 0, textOutcome: "You absorb the full brunt of the physical strike against your defensive line. Your companion takes advantage of the opening to launch a clean counter-attack." },
+            { text: "🏃 [Wisdom (Survival)] Pull back to structural cover to accurately assess weak target points", romance: 1, textOutcome: "Your patient tactical retreat lets you spot a clear vulnerability in the enemy's stance, calling out direct targeting instructions to your partner." },
+            { text: "😡 [Charisma (Intimidation)] Charge blindly forward while screaming a chaotic battle cry", romance: -1, textOutcome: "Your reckless rush breaks the party formation line entirely. You land a blow, but leave your companion unprotected against a sudden flanking sweep." }
+        ];
 
         function getActiveAct(ch) {
             if (ch <= 20) return actData[1];
@@ -253,25 +310,23 @@
             if (ch === 1) {
                 chapterText = `You gasp for air, collapsing onto a bed of damp earth and pine needles. The blinding light of an intricate summoning circle fades on the ground beneath you. Your head throbs, and your clothes are completely out of place here. Reaching into your pocket, you pull out your Earth cell phone—there is zero service, but its offline screen flickers to life, strangely vibrating in sync with the ambient energy. As you stand up trying to process your new body's **${gameState.subType}** abilities, a branch snaps. ${partner.name}, ${partner.role}, drops from the canopy above with a weapon drawn. "State your name and business, traveler! I saw the summoning rift from the valley!"`;
                 choices = [
-                    { text: "🤝 [Charisma (Persuasion)] Lower your hands and offer a peaceful explanation", romance: 1 },
-                    { text: "🛡️ [Strength (Athletics)] Brace your posture and prepare for an immediate duel", romance: 0 },
-                    { text: "🪙 [Charisma (Deception)] Claim you're a high-ranking traveling merchant who got lost", romance: -1 }
+                    { text: "🤝 [Charisma (Persuasion)] Lower your hands and offer a peaceful explanation", romance: 1, textOutcome: "Your honest, open posture puts them at ease. Lowering the weapon slightly, they listen to your bizarre tale with growing curiosity." },
+                    { text: "🛡️ [Strength (Athletics)] Brace your posture and prepare for an immediate duel", romance: 0, textOutcome: "Steel meets steel with a violent ring! The quick exchange tests your baseline reflexes, earning a nod of begrudging tactical respect." },
+                    { text: "🪙 [Charisma (Deception)] Claim you're a high-ranking traveling merchant who got lost", romance: -1, textOutcome: "They scan your strange modern clothes, narrowing their eyes in deep suspicion at the obviously fabricated explanation." }
                 ];
             } else if (ch === 99) {
-                // THE CLIMAX NARRATIVE CROSSROADS (+10 AFFINITY OPPORTUNITY)
                 chapterText = `[ACT V: FINAL REACH] The High Demon Lord crashes to the floor, turning to ash! However, his dying curse triggers a catastrophic structural collapse of the obsidian throne room. A massive falling stone column is plummeting straight toward an unconscious, exhausted ${partner.name}! Concurrently, your cell phone glows with a sudden blinding portal signal—your one chance to warp home safely back to Earth is active right now.`;
                 choices = [
-                    { text: "❤️ [SACRIFICE - AFFINITY +10] Throw yourself over them, using your class defense to tank the blast!", romance: 10 },
-                    { text: "🏃 [RUN - AFFINITY Neutral] Drag them with you as you make a frantic dive toward the exit lines", romance: 0 },
-                    { text: "✨ [LEAVE - AFFINITY Down] Dive directly into the glowing phone portal to secure your safe return home", romance: -5 }
+                    { text: "❤️ [SACRIFICE - AFFINITY +10] Throw yourself over them, using your class defense to tank the blast!", romance: 10, textOutcome: "Without a single thought for yourself, you dive over their body. The falling debris smashes down, fracturing your armor but keeping them completely untouched as the portals shatter." },
+                    { text: "🏃 [RUN - AFFINITY Neutral] Drag them with you as you make a frantic dive toward the exit lines", romance: 0, textOutcome: "You frantically grab them by the collar, hauling their weight across the stone tiling just as the column crashes onto the exact space you occupied." },
+                    { text: "✨ [LEAVE - AFFINITY Down] Dive directly into the glowing phone portal to secure your safe return home", romance: -5, textOutcome: "Driven by the raw instinct to survive, you leap backward into the glowing light. The dimensional gate snaps shut behind you, cutting off the sights of the falling masonry." }
                 ];
             } else if (ch === 100) {
-                chapterText = `The cataclysm settles completely. The dust clears over the ruined throne room floor. The dark rifts are silent, and the realm has been decisively saved. Standing among the remnants of the final battle line, you turn toward ${partner.name} to face the final calculation of your timeline journey.`;
+                chapterText = `The cataclysm settles completely. The dust clears over the ruined throne room floor. The rifts are silent, and the realm has been decisively saved. Standing among the remnants of the final battle line, you turn toward ${partner.name} to face the final calculation of your timeline journey.`;
                 choices = [
-                    { text: "🌌 Complete the journey parameters and witness your final fate.", romance: 0 }
+                    { text: "🌌 Complete the journey parameters and witness your final fate.", romance: 0, textOutcome: "The parameters compile..." }
                 ];
             } else if (ch % 10 === 0) {
-                // Contextual Campfire Interludes per Act
                 let interludeText = "";
                 if (ch <= 20) interludeText = `You are still adapting to the woods, tending to minor scrapes. ${partner.name} watches you closely, still trying to determine if your bizarre Earth background makes you an ally.`;
                 else if (ch <= 40) interludeText = `Having gained some status at the border towns, you share a warm tavern meal. ${partner.name} laughs at your descriptions of Earth concepts, looking increasingly fond of your company.`;
@@ -281,25 +336,18 @@
 
                 chapterText = `[Campfire Respite] ${interludeText} As you check your phone screen, ${partner.name} looks up quietly. "${gameState.name}... when this final conflict settles and the grid is clear... do you truly intend to try and escape back to your home world, or will you stay here?"`;
                 choices = [
-                    { text: "❤️ [Affinity +1] \"My home is right here next to you now. I'm staying.\"", romance: 2 },
-                    { text: "⚖️ [Affinity Neutral] \"I honestly don't know what's left for me there, or here. Let's just survive.\"", romance: 0 },
-                    { text: "✨ [Affinity -1] \"I have people back on Earth. I have to find a way back if it's possible.\"", romance: -1 }
+                    { text: "❤️ [Affinity +1] \"My home is right here next to you now. I'm staying.\"", romance: 2, textOutcome: "A soft, radiant smile crosses their face in the warm firelight. They reach out, squeezing your hand with absolute, silent devotion." },
+                    { text: "⚖️ [Affinity Neutral] \"I honestly don't know what's left for me there, or here. Let's just survive.\"", romance: 0, textOutcome: "They nod understandingly, staring deeply into the rising orange sparks, respecting the pragmatic weight of your focus." },
+                    { text: "✨ [Affinity -1] \"I have people back on Earth. I have to find a way back if it's possible.\"", romance: -1, textOutcome: "Their eyes dim slightly as they stare into the ashes, a quiet distance settling between you as the cold reality hits." }
                 ];
             } else if (ch % 2 === 0) {
-                // Act-Appropriate Exploration Scenarios
                 const sc = currentAct.exploration[ch % currentAct.exploration.length];
                 chapterText = `[Exploration] ${sc.text} ${partner.name} falls into a defensive flank, waiting for your tactical decision string.`;
                 choices = [sc.options[0], sc.options[1], sc.options[2]];
                 if (gameState.subType === sc.perkClass) choices.push(sc.options[3]);
             } else {
-                // Act-Appropriate Combat Scenarios
                 chapterText = `[Combat Engagement] ${currentAct.combat} You draw your weapons, your **${gameState.subType}** reflexes flaring to life as ${partner.name} unleashes an opening strike alongside you!`;
-                choices = [
-                    { text: "⚔️ [Dexterity (Acrobatics)] Coordinate a swift flanking combo attack with your companion", romance: 1 },
-                    { text: "🛡️ [Strength (Athletics)] Step forward to aggressively draw the enemy's line of fire onto your position", romance: 0 },
-                    { text: "🏃 [Wisdom (Survival)] Pull back to structural cover to accurately assess weak target points", romance: 1 },
-                    { text: "😡 [Charisma (Intimidation)] Charge blindly forward while screaming a chaotic battle cry", romance: -1 }
-                ];
+                choices = [combatOptionsPool[0], combatOptionsPool[1], combatOptionsPool[2], combatOptionsPool[3]];
             }
 
             const runtimeDescriptionText = `
@@ -312,12 +360,17 @@
                 </div>
             `;
 
-            const buttonsHTML = choices.map(choice => `
-                <button onclick="handleChoice(${choice.romance})" class="w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 active:bg-indigo-900 border border-slate-700 hover:border-indigo-500 text-left text-white font-medium rounded-xl transition-all flex items-center space-x-3 group">
-                    <span class="flex-1 text-xs md:text-sm leading-snug">${choice.text}</span>
-                    <span class="text-slate-500 group-hover:text-indigo-400 text-xs font-bold font-mono shrink-0">▶</span>
-                </button>
-            `).join('');
+            const buttonsHTML = choices.map(choice => {
+                // Safely convert object quotes to avoid HTML rendering failures inside onclick strings
+                const escapedOutcome = choice.textOutcome.replace(/"/g, '&quot;').replace(/'/g, "\\'");
+                const escapedAction = choice.text.replace(/"/g, '&quot;').replace(/'/g, "\\'");
+                return `
+                    <button onclick="renderConsequenceScreen('${escapedAction}', '${escapedOutcome}', ${choice.romance})" class="w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 active:bg-indigo-900 border border-slate-700 hover:border-indigo-500 text-left text-white font-medium rounded-xl transition-all flex items-center space-x-3 group">
+                        <span class="flex-1 text-xs md:text-sm leading-snug">${choice.text}</span>
+                        <span class="text-slate-500 group-hover:text-indigo-400 text-xs font-bold font-mono shrink-0">▶</span>
+                    </button>
+                `;
+            }).join('');
 
             view.innerHTML = `
                 <div class="flex-1 flex flex-col justify-between h-full">
@@ -331,17 +384,57 @@
             `;
         }
 
-        function handleChoice(romanceMod) {
-            gameState.romanceScore += romanceMod;
+        // INTERMEDIATE STEP 2.5: The Consequence Panel addressing looping feedback
+        function renderConsequenceScreen(actionTaken, outcomeText, scoreMod) {
+            // Apply variables immediately to state context
+            gameState.romanceScore += scoreMod;
+            
+            let affinityIconHTML = `<span>⚖️ Affinity Unchanged</span>`;
+            if (scoreMod > 0) affinityIconHTML = `<span class="text-emerald-400 font-semibold">💘 Affinity Increased (+${scoreMod})</span>`;
+            if (scoreMod < 0) affinityIconHTML = `<span class="text-rose-400 font-semibold">💔 Affinity Decreased (${scoreMod})</span>`;
+
+            view.innerHTML = `
+                <div class="flex-1 flex flex-col justify-between h-full">
+                    <div class="flex-1 overflow-y-auto space-y-4">
+                        <div class="bg-slate-950 p-4 border border-slate-800 rounded-xl space-y-1">
+                            <span class="text-[10px] font-mono tracking-wider text-indigo-400 uppercase block font-bold">Action Undertaken</span>
+                            <p class="text-xs text-slate-400 italic">${actionTaken}</p>
+                        </div>
+                        
+                        <div class="space-y-2 pt-2">
+                            <span class="text-[10px] font-mono tracking-wider text-amber-400 uppercase block font-bold">Result Timeline Outcome</span>
+                            <p class="text-slate-200 leading-relaxed text-sm">${outcomeText}</p>
+                        </div>
+                    </div>
+
+                    <!-- Action Block Footer Container -->
+                    <div class="space-y-4 pt-4 border-t border-slate-800 shrink-0 bg-slate-900">
+                        <div class="text-center text-xs">
+                            ${affinityIconHTML}
+                        </div>
+                        <button onclick="advanceChapterSequence()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl active:scale-95 transition-all text-center flex justify-center items-center space-x-2 shadow-lg shadow-indigo-900/20">
+                            <span>Advance Journey</span>
+                            <span class="font-mono text-sm">▶</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function advanceChapterSequence() {
             if (gameState.currentChapter === 100) {
                 renderEndGameScreen();
             } else {
                 gameState.currentChapter++;
+                
+                // SILENT BACKGROUND AUTO-SAVE PIPELINE (Triggers right as chapter steps advance)
+                localStorage.setItem('isekai_chronicles_save', JSON.stringify(gameState));
+                
                 renderStoryLoop();
             }
         }
 
-        // Calibrated 4-Tier Ending Matrix based on new score balancing
+        // Final 4-Tier Evaluation Framework
         function renderEndGameScreen() {
             hud.classList.add('hidden');
             let endTitle = "";
@@ -349,6 +442,9 @@
             let bgClass = "";
             const partner = getRomancePartner();
             const finalScore = gameState.romanceScore;
+
+            // Clean data store upon structural campaign completion loops
+            localStorage.removeItem('isekai_chronicles_save');
 
             if (finalScore >= 30) {
                 bgClass = "border-emerald-500/30 bg-emerald-950/20";
@@ -379,7 +475,7 @@
                         <p>Final Affinity Score: [${finalScore}]</p>
                     </div>
                     <button onclick="resetGame()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 font-bold text-white rounded-xl active:scale-95 transition-all">
-                        Re-initialize Gateway Loop 🔁
+                        Return to Gate Hub 🔁
                     </button>
                 </div>
             `;
@@ -394,10 +490,11 @@
                 currentChapter: 1,
                 romanceScore: 0
             };
-            initClassScreen();
+            initMainMenu();
         }
 
-        initClassScreen();
+        // Core App Root Vector
+        initMainMenu();
     </script>
 </body>
-</html> 
+</html>
