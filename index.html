@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Isekai Realms: D&D Chronicles</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; font-size: 16px; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 flex justify-center items-center min-h-screen p-4 select-none">
+
+    <div class="w-full max-w-md bg-slate-900 border-2 border-slate-800 rounded-2xl shadow-2xl flex flex-col h-[90vh] overflow-hidden">
+        
+        <header class="bg-slate-950 px-6 py-4 border-b border-slate-800 flex justify-between items-center shrink-0">
+            <h1 class="text-xs font-bold tracking-widest text-indigo-400 uppercase font-mono" id="hud-act">Act I: Awakening</h1>
+            <div id="hud-stats" class="text-xs text-slate-400 hidden">
+                <span id="hud-name" class="font-semibold text-slate-200"></span> | 
+                <span id="hud-chapter" class="text-amber-400 font-semibold">Ch 1/100</span>
+            </div>
+        </header>
+
+        <main id="game-viewport" class="flex-1 overflow-y-auto p-6 flex flex-col justify-between space-y-6">
+            </main>
+        
+    </div>
+
+    <script>
+        // Core Game State Model with Integrated Character Sheet
+        let gameState = {
+            subType: '',       
+            name: '',
+            gender: '',        
+            partnerPref: '',   
+            currentChapter: 1, 
+            romanceScore: 0,
+            stats: { str: 5, dex: 5, int: 5, wis: 5 }
+        };
+
+        const view = document.getElementById('game-viewport');
+        const hud = document.getElementById('hud-stats');
+        const hudAct = document.getElementById('hud-act');
+
+        function checkExistingSave() {
+            const localData = localStorage.getItem('isekai_chronicles_save');
+            return localData ? JSON.parse(localData) : null;
+        }
+
+        function isMainStat(stat) {
+            const type = gameState.subType;
+            if (type === 'Knight') return (stat === 'str' || stat === 'dex');
+            if (type === 'Summoner') return (stat === 'int' || stat === 'wis');
+            if (type === 'Ranger') return (stat === 'dex' || stat === 'wis');
+            if (type === 'Assassin') return (stat === 'dex' || stat === 'int');
+            return false;
+        }
+
+        function getActDifficultyMod(ch) {
+            if (ch <= 20) return 0;  
+            if (ch <= 40) return 3;  
+            if (ch <= 60) return 6;  
+            if (ch <= 80) return 9;  
+            return 12;               
+        }
+
+        function updateHUD() {
+            const ch = gameState.currentChapter;
+            if (ch <= 20) hudAct.innerText = "Act I: The Awakening";
+            else if (ch <= 40) hudAct.innerText = "Act II: Borderlands Guild";
+            else if (ch <= 60) hudAct.innerText = "Act III: Shadow Descent";
+            else if (ch <= 80) hudAct.innerText = "Act IV: Shattered Citadel";
+            else hudAct.innerText = "Act V: Obsidian Apex";
+
+            if (gameState.name) {
+                hud.classList.remove('hidden');
+                document.getElementById('hud-name').innerText = `${gameState.name} (${gameState.subType})`;
+                document.getElementById('hud-chapter').innerText = `Ch ${ch}/100`;
+            } else {
+                hud.classList.add('hidden');
+            }
+        }
+
+        function recompileSaveState() {
+            localStorage.setItem('isekai_chronicles_save', JSON.stringify(gameState));
+        }
+
+        function getRomancePartner() {
+            const pref = gameState.partnerPref;
+            if (pref === 'Female') return { name: 'Lyra', role: 'the Fierce Elven Ranger' };
+            if (pref === 'Male') return { name: 'Garrick', role: 'the Charming Vanguard Knight' };
+            return { name: 'Eldrin', role: 'the Rogue High Elf Mage' }; 
+        }
+
+        const actThemes = {
+            1: {
+                name: "Act I: The Awakening & The Wilds",
+                obstacles: [
+                    { t: "A massive, thick briar patch tangled with glowing purple toxic thorns completely chokes off the overgrown path ahead.",
+                      o: [
+                          { text: "👁️ [Wisdom Check] Quietly study the organic grid patterns to unweave a path vector", stat: "wis", r: 1, res: "Your focus maps out a clean crawl-line. You slide through the brush cleanly without triggering thorn traps." },
+                          { text: "👟 [Dexterity Check] Attempt a series of swift vaults across the surrounding high rocks", stat: "dex", r: 0, res: "You vault the boulders cleanly, dropping safely down on the opposite path." },
+                          { text: "💪 [Strength Check] Forcefully slash your way through the smaller outer brambles", stat: "str", r: 0, res: "You clear a passage through brute force, though a stray prick makes your skin sting slightly." }
+                      ]},
+                    { t: "The mountain trail terminates at a fractured wooden suspension bridge. The support lines are frayed down to a single rotten wire strand over a bottomless void canyon.",
+                      o: [
+                          { text: "📜 [Intelligence Check] Map the structural alignment to locate secure stone support joints", stat: "int", r: 1, res: "You calculate a precise stepping sequence, guiding your companion past the popping wire links smoothly." },
+                          { text: "👟 [Dexterity Check] Execute a high-speed sprint across before the planks give way", stat: "dex", r: 0, res: "You charge forward light-footed. Rotted wood fragments plunge into the abyss behind your steps, but you clear the ridge." },
+                          { text: "👁️ [Wisdom Check] Gauge the crosswinds to balance across the remaining steel tethers", stat: "wis", r: 1, res: "Patiently matching your center of gravity to the canyon gusts, you safely steady yourself to the other side." }
+                      ]}
+                ],
+                combats: ["a pack of feral dire-wolves tracking your planar scent", "a mud-born Swamp Horror surging from the marsh bog frames"]
+            },
+            2: {
+                name: "Act II: The Borderlands & The Guild",
+                obstacles: [
+                    { t: "A heavy ironwood gate seals the entry to the Adventurers Guild house, surrounded by a hostile, rioting mercenary crowd.",
+                      o: [
+                          { text: "👁️ [Wisdom Check] Calmly analyze the crowd density vectors to lead a peaceful negotiation bypass", stat: "wis", r: 1, res: "Your focus convinces the watch lieutenant. The side locks disengage and the ironwood gate slides open." },
+                          { text: "💪 [Strength Check] Ram your full weight directly into the wood frame to force the locked gear lines", stat: "str", r: 0, res: "Your physical mass snaps the secondary latch bracket, forcing the tracking gate slightly open." },
+                          { text: "👟 [Dexterity Check] Weave smoothly through the chaotic cracks in the crowd layout undetected", stat: "dex", r: 1, res: "Slipping through blind spots like a ghost, you reach the side entry port before the mob notices." }
+                      ]},
+                    { t: "Deep inside a corrupt local merchant warehouse, you locate an iron chest trapped with an active explosive fire-rune sigil.",
+                      o: [
+                          { text: "📜 [Intelligence Check] Apply your mana knowledge to delicately unweave the core runic parameters", stat: "int", r: 1, res: "You trace the energy lines, cleanly shorting out the explosive catalyst to reveal the contents." },
+                          { text: "👟 [Dexterity Check] Slide a precision blade under the latch to detach the trigger filament", stat: "dex", r: 0, res: "Your fingers remain perfectly steady, unlinking the spring pressure before the rune can detonate." },
+                          { text: "👁️ [Wisdom Check] Safely douse the latch frame with specialized dampening fluid to suppress the sparks", stat: "wis", r: 1, res: "The neutralizing mixture breaks the arc matrix, rendering the seal safe to pick open." }
+                      ]}
+                ],
+                combats: ["a paid squad of brutal warehouse thug enforcers", "a toxic green Sewer Ooze dropping from the aqueduct stones"]
+            },
+            3: {
+                name: "Act III: The Shadow Descent",
+                obstacles: [
+                    { t: "An unstable arcane font hums inside a dark cavern fissure, leaking volatile raw elemental magic across the path.",
+                      o: [
+                          { text: "📜 [Intelligence Check] Focus your mana paths to trace a counter-containment sigil seal", stat: "int", r: 1, res: "Your structural calculation stabilizes the font drift, grounding the elements and clearing the road." },
+                          { text: "👟 [Dexterity Check] Timing your breathing, try to delicately dodge past the energy pulses", stat: "dex", r: 0, res: "Moving with absolute physical precision, you slide past the crack without absorbing a single bolt." },
+                          { text: "👁️ [Wisdom Check] Patiently track the visual flare patterns to wait out the active bursts", stat: "wis", r: 1, res: "By analyzing the cycle timing, you lead the group through during a perfect millisecond lull." }
+                      ]}
+                ],
+                combats: ["blind cave stalkers tracking your movements purely by sound waves", "shadow-cultist ambushers attacking your camp out of the dark stones"]
+            },
+            4: {
+                name: "Act IV: The Shattered Citadel",
+                obstacles: [
+                    { t: "A heavily armored Citadel Sentinel commander stands watch over the lower barracks armory tunnel.",
+                      o: [
+                          { text: "👁️ [Wisdom Check] Invoke high knightly tactical codes to command him to drop his posture", stat: "wis", r: 1, res: "The sentinel drops his weapon frame in respect to your authority, granting you full passage." },
+                          { text: "💪 [Strength Check] Intercept his guard line with a crushing, high-impact shoulder block tackle", stat: "str", r: 0, res: "You launch them back into the weapon ironwork racks, disrupting the sector alerts." },
+                          { text: "📜 [Intelligence Check] Decipher the wall console arrays nearby to activate a structural sorting lock gate behind him", stat: "int", r: 1, res: "A metal divider slams down from the ceiling, isolating the guard cleanly on the far flank loop." }
+                      ]},
+                    { t: "A collapsing courtyard stone bridge threatens to slide into the mountain gorge under heavy artillery fire.",
+                      o: [
+                          { text: "👁️ [Wisdom Check] Track the mortar fire trajectories to execute a timed dash sequence", stat: "wis", r: 1, res: "You lead a clean tactical sprint across the shaking stones right as an explosive shell crashes behind you." },
+                          { text: "💪 [Strength Check] Brace a falling stone structural pillar to hold the archways up for the party", stat: "str", r: 2, res: "Your muscles lock under the concrete stress, maintaining the path long enough for everyone to slide through." },
+                          { text: "👟 [Dexterity Check] Fluidly balance across the breaking ledge frames as the foundations tilt", stat: "dex", r: 1, res: "You adapt to the dropping centers of mass, diving safely onto the solid cliff road." }
+                      ]}
+                ],
+                combats: ["an elite crimson Wyvern diving from the spiked battlements", "a squad of dark spell-swords wielding high-voltage lightning blades"]
+            },
+            5: {
+                name: "Act V: The Obsidian Apex",
+                obstacles: [
+                    { t: "The palace inner sanctum door is bound by an ancient blood-magic seal that turns skin to ash upon proximity.",
+                      o: [
+                          { text: "📜 [Intelligence Check] Execute a core algorithmic rewrite of the runic matrix coordinates", stat: "int", r: 1, res: "Line by line, the glowing crimson blood circle dims out, causing the grand throne doors to click open." },
+                          { text: "💪 [Strength Check] Execute an absolute physical shield rush combo to shatter the iron hinges", stat: "str", r: 0, res: "Your physical leverage breaks the reinforced bindings, splintering the frame through raw mass." },
+                          { text: "👁️ [Wisdom Check] Focus your defensive energies to project a baseline barrier field over the seal path", stat: "wis", r: 1, res: "The elementally balanced shield acts as an insulation layer, letting you turn the physical lock safely." }
+                      ]}
+                ],
+                combats: ["a giant Obsidian Golem constructed from the mountain stone", "the High Demon Lord's Inner Council elemental spellcasters"]
+            }
+        };
+
+        function getChapterData(ch, partner) {
+            const currentAct = getActiveActTheme(ch);
+            
+            const standardCombatOptions = [
+                { text: "⚔️ [Dexterity Check] Coordinate a swift flanking assault combo", stat: "dex", romance: 1, textOutcome: "You time your advance perfectly, flashing past the target's armor line to expose a clean opening." },
+                { text: "🛡️ [Strength Check] Dig your boots in and draw the combat pressure onto your stance", stat: "str", romance: 0, textOutcome: "You slam your weapon against your armor, forcing the enemy focus entirely onto your defensive position." },
+                { text: "🏃 [Wisdom Check] Pull back into the immediate brush to target a vulnerability", stat: "wis", romance: 1, textOutcome: "You duck behind cover, locating a major tactical exploit path to call out to your partner." },
+                { text: "📜 [Intelligence Check] Analyze the target’s attack cycles to spot an environmental vulnerability", stat: "int", romance: 1, textOutcome: "You precisely call out a timing lag in the enemy line, letting your partner land a clean exploit hit." }
+            ];
+
+            if (ch === 1) {
+                return {
+                    desc: `You gasp for air, collapsing onto a bed of damp earth and pine needles. The blinding light of an intricate summoning circle fades on the ground beneath you. Your head throbs, and your clothes are completely out of place here. Reaching into your pocket, you pull out your Earth cell phone—there is zero service, but its offline screen flickers to life, strangely vibrating in sync with the ambient energy. As you stand up trying to process your new body's **${gameState.subType}** abilities, a branch snaps. ${partner.name},${partner.role}, drops from the canopy above with a weapon drawn. "State your name and business, traveler! I saw the summoning rift from the valley!"`,
+                    options: [
+                        { text: "👁️ [Wisdom Check] Lower your hands slowly and articulate a calm explanation string", stat: "wis", romance: 1, textOutcome: "Your honest posture puts them at ease. Lowering the weapon, they listen to your bizarre tale with deep curiosity." },
+                        { text: "💪 [Strength Check] Brace your balance profile and prepare for an immediate martial exchange", stat: "str", romance: 0, textOutcome: "Steel meets steel with a violent ring! The physical trade tests your baseline muscle groups, earning a nod of respect." }
+                    ]
+                };
+            }
+            
+            if (ch === 2) {
+                return {
+                    desc: `Leaving the glowing ash of the summoning site behind, you sprint alongside ${partner.name}. The canopy overhead slams shut, casting the forest into deep twilight.
