@@ -7,11 +7,8 @@
     <!-- Tailwind CSS for mobile portrait layout -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            font-size: 16px;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght=400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; font-size: 16px; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 flex justify-center items-center min-h-screen p-4 select-none">
@@ -38,7 +35,7 @@
     <script>
         // Core Game State Model
         let gameState = {
-            subType: '',       
+            subType: '',       // 'Summoner' | 'Ranger' | 'Assassin' | 'Knight'
             name: '',
             gender: '',        
             partnerPref: '',   
@@ -52,14 +49,7 @@
 
         function checkExistingSave() {
             const localData = localStorage.getItem('isekai_chronicles_save');
-            if (localData) {
-                try {
-                    return JSON.parse(localData);
-                } catch(e) {
-                    return null;
-                }
-            }
-            return null;
+            return localData ? JSON.parse(localData) : null;
         }
 
         function updateHUD() {
@@ -82,8 +72,8 @@
         function initMainMenu() {
             updateHUD();
             const savedState = checkExistingSave();
-            
             let resumeButtonHTML = "";
+            
             if (savedState && savedState.currentChapter > 1 && savedState.currentChapter <= 100) {
                 resumeButtonHTML = `
                     <button onclick="resumeSavedGame()" class="w-full py-4 px-6 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl transition-all border border-amber-500/30 active:scale-95 flex justify-between items-center shadow-lg shadow-amber-900/20">
@@ -155,12 +145,10 @@
                         <h2 class="text-xl font-bold text-white">Identity Awakening</h2>
                         <p class="text-slate-400 text-sm">Etch your parameters into the tapestry.</p>
                     </div>
-
                     <div class="space-y-1">
                         <label class="block text-xs font-semibold tracking-wider text-slate-400 uppercase">True Name</label>
                         <input id="char-name" type="text" placeholder="Enter name..." class="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white font-medium focus:outline-none focus:border-indigo-500 text-base">
                     </div>
-
                     <div class="space-y-1">
                         <label class="block text-xs font-semibold tracking-wider text-slate-400 uppercase">Your Alignment</label>
                         <div class="grid grid-cols-3 gap-2">
@@ -169,7 +157,6 @@
                             <button onclick="setStateVar(this, 'gender', 'Non-Binary', 'g-btn')" class="g-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all">Non-Binary</button>
                         </div>
                     </div>
-
                     <div class="space-y-1">
                         <label class="block text-xs font-semibold tracking-wider text-slate-400 uppercase">Who catches your eye in this realm?</label>
                         <div class="grid grid-cols-3 gap-2">
@@ -178,7 +165,6 @@
                             <button onclick="setStateVar(this, 'partnerPref', 'Non-Binary', 'p-btn')" class="p-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all">Fluid</button>
                         </div>
                     </div>
-
                     <button onclick="submitCharacter()" class="w-full mt-2 py-3.5 bg-indigo-600 hover:bg-indigo-500 font-bold text-white rounded-xl active:scale-95 transition-all shadow-lg shadow-indigo-900/20">
                         Cross the Threshold ⚡
                     </button>
@@ -215,119 +201,212 @@
             return { name: 'Eldrin', role: 'the Rogue High Elf Mage' }; 
         }
 
-        // Comprehensive Master Story Matrix Engine (Completely Explicit Chapters)
+        // Master Act Scenarios & Core Themes (Fully Expanded to cover all unique 100 chapters without sharing elements)
+        const actThemes = {
+            1: {
+                name: "Act I: The Awakening & The Wilds",
+                obstacles: [
+                    { t: "A massive, thick briar patch tangled with glowing purple toxic thorns completely chokes off the overgrown path ahead.", p: "Ranger",
+                      o: [
+                          { text: "🍎 [Sleight of Hand] Feed nearby wild berries to local woodland critters to clear a crawling route", r: 1, res: "The critters pack together, chewing rapidly through the root systems to open a safe path." },
+                          { text: "🗣️ [Charisma (Intimidation)] Brandish a lit torch and forcefully yell to clear the path", r: -1, res: "The flame ignites a small pocket of poison briar gas, stinging your lungs and irritating your companion." },
+                          { text: "⚔️ [Dexterity (Acrobatics)] Use nearby low boulders to vault cleanly over the wall", r: 0, res: "You execute a clean aerial leap, clearing the thorns completely and landing safely on the opposite path." },
+                          { text: "🐾 [Class: Ranger] Apply Natural Kinship to pacify the living plant matrices", r: 2, res: "You whistle a woodland melody. The toxic thorns smooth out, parting like an organic curtain to let you walk through." }
+                      ]},
+                    { t: "The mountain path ends abruptly at a broken wooden suspension bridge spanning a yawning canyon. The support ropes are frayed to a single thread over the abyss.", p: "Ranger",
+                      o: [
+                          { text: "🔍 [Intelligence (Investigation)] Analyze the line stress to step precisely on support joints", r: 1, res: "You map out a safe stepping route, navigating the swaying structure safely." },
+                          { text: "🏃 [Strength (Athletics)] Sprint across at top speed before the rotten planks can detach", r: 0, res: "You bolt forward. Planks splinter into the abyss behind your boots, but you make it across safely." },
+                          { text: "🗣️ [Charisma (Persuasion)] Suggest that your companion test the lines first", r: -1, res: "They give you an icy look, crossing effortlessly on their own but leaving group trust damaged." },
+                          { text: "🏹 [Class: Ranger] Fire a high-tension grapple rope to reinforce the anchor framework", r: 2, res: "Your arrow embeds a steel-bound cable that turns the hazard into a completely rigid, stable walkway." }
+                      ]},
+                    { t: "A dense sheet of freezing mountain fog rolls in, reducing visibility to zero and clouding your orientation lines.", p: "Ranger",
+                      o: [
+                          { text: "🧭 [Wisdom (Survival)] Scan the moss and rock slopes for natural geographic markers", r: 1, res: "You maintain a solid true heading, walking safely through the whiteout." },
+                          { text: "✊ [Charisma (Intimidation)] Command the party to march onward blindly at double pace", r: -1, res: "You lead the party straight into a deep mud bog, losing valuable time cleaning your gear." },
+                          { text: "🏃 [Dexterity (Stealth)] Move slowly in a tight single-file line holding a shared guide rope", r: 0, res: "You navigate the treacherous ridge carefully, keeping everyone connected in the whiteout." },
+                          { text: "🐾 [Class: Ranger] Listen to the low frequency calls of mountain birds to navigate the cliffs", r: 2, res: "Using raw directional tracking, you read the avian echoes to perfectly avoid the cliff traps." }
+                      ]}
+                ],
+                combats: ["a territorial pack of feral dire-wolves tracking your planar scent", "a mass of rotted roots and glowing mud eyes forming a Swamp Horror", "a screeching flock of corrupted Grave Crows diving out of the mountain mist"]
+            },
+            2: {
+                name: "Act II: The Borderlands & The Guild",
+                obstacles: [
+                    { t: "A heavy ironwood gate seals the entrance to the Borderlands Adventurers Guild house, blocked by an angry mercenary mob.", p: "Assassin",
+                      o: [
+                          { text: "💥 [Strength (Athletics)] Attempt to smash your shoulder cleanly into the side lock bracket", r: 0, res: "The frame holds, bruising you slightly, but the loud thuds draw the gatekeeper's attention." },
+                          { text: "✊ [Charisma (Persuasion)] State your urgent business calmly to the viewer slot, requesting entry", r: 1, res: "Your professional explanation convinces the gate warden, and the heavy gates slide open." },
+                          { text: "🌿 [Intelligence (Investigation)] Scan the surrounding stonework for a hidden side latch", r: -1, res: "You search aimlessly while the mercenary mob grows increasingly hostile to your presence." },
+                          { text: "🔑 [Class: Assassin] Slip your picks into the keyway and seamlessly trip the mechanism", r: 2, res: "Your fingers move with silent grace. The pins click open instantly, and the frame glides open." }
+                      ]},
+                    { t: "Deep inside a corrupt local merchant warehouse, you locate a chest trapped with an active explosive fire-rune sigil.", p: "Assassin",
+                      o: [
+                          { text: "📜 [Intelligence (Arcana)] Attempt to delicately unweave the core magical parameters of the sigil", r: 1, res: "You trace the energy lines, neutralizing the explosive charge safely to reveal the loot." },
+                          { text: "🏃 [Dexterity (Stealth)] Try to hook the contents from a distance without triggering the field", r: 0, res: "You successfully fish out a map file just before the chest snaps shut, narrowly avoiding a blast." },
+                          { text: "😡 [Charisma (Intimidation)] Bash the lid open with a heavy iron bar, hoping to tank the blast", r: -1, res: "The chest explodes, singing your armor. Your partner sighs deeply at your recklessness." },
+                          { text: "🗡️ [Class: Assassin] Slice the primary trigger filament with a surgical shadow-blade stroke", r: 2, res: "With perfect precision, you sever the link before the rune registers a breach, saving the treasure." }
+                      ]},
+                    { t: "A massive sewer drainage valve blocking your path down the aqueducts is controlled by a frozen brass gear layout.", p: "Assassin",
+                      o: [
+                          { text: "🔧 [Intelligence (Investigation)] Study the gear alignment ratios to unjam the primary drive wheel", r: 1, res: "You safely release the locking pin, causing the foul water to drain away smoothly." },
+                          { text: "💥 [Strength (Athletics)] Forcefully throw your weight against the heavy valve crank lever", r: 0, res: "With a loud groan, the metal yields under your muscle power, slowly raising the internal gate." },
+                          { text: "🪙 [Charisma (Deception)] Attempt to bypass the gate entirely by smashing through an intake pipe", r: -1, res: "The pipe bursts, spraying sewage water across the party and ruining your immediate supply packs." },
+                          { text: "🔑 [Class: Assassin] Apply high-pressure oil and slide your lockpicks to clear the gear pins", r: 2, res: "You lubricate and release the binding gears seamlessly, dropping the gate in absolute silence." }
+                      ]}
+                ],
+                combats: ["a paid squad of brutal warehouse thug enforcers wielding spiked clubs", "a giant, toxic green Sewer Ooze dropping from the wet stone ceiling", "a rusted clockwork guardian automaton charging out of the vault vault crypts"]
+            },
+            3: {
+                name: "Act III: The Shadow Descent",
+                obstacles: [
+                    { t: "An ancient, volatile magical font hums inside a dark cavern fissure, leaking raw elements across the underground trail.", p: "Summoner",
+                      o: [
+                          { text: "📜 [Intelligence (Arcana)] Perform a containment seal chant to ground the leaking energy", r: 1, res: "Your precise focus stabilizes the leak, calming the air and clearing the primary pathway." },
+                          { text: "🏃 [Dexterity (Stealth)] Quietly stick to the dark cavern wall shadows to avoid catching aggro", r: 0, res: "Pressing flat against the granite, you slowly crawl past the active radius without disturbing the font." },
+                          { text: "🪨 [Strength (Athletics)] Hurl heavy cavern stalactites to break the font's power crystals", r: -1, res: "The impact shatters the crystals, causing a miniature magical backlash that leaves your ears ringing." },
+                          { text: "🔮 [Class: Summoner] Order your ethereal companion animal to siphon the elemental drift away", r: 2, res: "Your familiar steps forward, inhaling the raw energy particles and safely neutralizing the hazard." }
+                      ]},
+                    { t: "The cavern floor gives way, leaving only a narrow, slippery ledge above a lake of churning boiling magma.", p: "Summoner",
+                      o: [
+                          { text: "👟 [Dexterity (Acrobatics)] Carefully balance your weight, moving slowly along the rock face", r: 1, res: "You cross the ledge smoothly, guiding your partner to safe handholds along the cavern wall." },
+                          { text: "🧗 [Strength (Athletics)] Leap across the gap completely, landing on a sturdier distant platform", r: 0, res: "You clear the gap with an aggressive jump, narrowly catching the far rim as rock crumbles." },
+                          { text: "🗣️ [Charisma (Intimidation)] Forcefully tell your partner to look away while you frantically scramble across", r: -1, res: "Your panic strains the mood. You cross safely, but your lack of composure damages their trust." },
+                          { text: "🔮 [Class: Summoner] Manifest a solid bridge of condensed mana to cross the heat gap perfectly", r: 2, res: "You conjure a shimmering path of raw light, walking across the hazard safely." }
+                      ]},
+                    { t: "The grand archives door inside a sunken city is bound by a massive blood-magic sigil that burns all flesh.", p: "Summoner",
+                      o: [
+                          { text: "📜 [Intelligence (Arcana)] Attempt to carefully rewrite the runic parameters by hand", r: 1, res: "Your careful structural analysis unweaves the host sigil line by line, safely dissipating the trap." },
+                          { text: "💥 [Strength (Athletics)] Throw yourself directly into the shield to brute-force break it", r: -1, res: "The feedback pulse throws you back. Your armor absorbs the brunt, but the reckless pain strains morale." },
+                          { text: "🌿 [Intelligence (Investigation)] Search for the linked focus mirrors nearby to disrupt the light beams", r: 0, res: "You locate two crystals, angling them away to disrupt the blood supply beams and dim the seal." },
+                          { text: "🔮 [Class: Summoner] Summon your familiar to sacrifice its mana pool to safely pop the sigil", r: 2, res: "Your spirit summon intercepts the lock loop, short-circuiting the blood circle entirely at the cost of its form." }
+                      ]}
+                ],
+                combats: ["blind cave stalker predators hunting your position purely by sound tracking", "shadow-cultist ambushers attacking your camp out of the cavern darkness", "a giant flying swarm of animated daggers protecting the sunken archives"]
+            },
+            4: {
+                name: "Act IV: The Shattered Citadel",
+                obstacles: [
+                    { t: "A heavily armored Citadel Sentinel stands watch over the lower barracks armory tunnel entry corridor.", p: "Knight",
+                      o: [
+                          { text: "🪙 [Charisma (Deception)] Feign a panic alarm elsewhere to convince the guard to rotate vectors", r: -1, res: "The guard registers the alarm but calls for backup instead of leaving, keeping the tunnel blocked." },
+                          { text: "👑 [Charisma (Persuasion)] Appeal to their honor regarding the incoming global siege line threat", r: 1, res: "Your genuine appeal resonates. Realizing the urgency of your quest, the sentinel steps aside." },
+                          { text: "👟 [Dexterity (Stealth)] Wait for the torch-fire to flicker down and attempt a shadow slip bypass", r: 0, res: "You time the guard's rotation, slipping noiselessly into the dark tunnel without creating a sound." },
+                          { text: "🛡️ [Class: Knight] Flaunt your high-order Vanguard crest to claim absolute command status", r: 2, res: "The sentinel recognizes the legendary crest, snapping to strict military attention and granting access." }
+                      ]},
+                    { t: "An exploding artillery shell drops a heavy steel portcullis down, trapping your partner inside a burning corridor.", p: "Knight",
+                      o: [
+                          { text: "🌿 [Intelligence (Investigation)] Search for the emergency mechanical override gear wheels nearby", r: 1, res: "You locate the manual winch, cranking it with total focus to raise the gate just enough." },
+                          { text: "🗣️ [Charisma (Persuasion)] Call out encouraging words, guiding them to find a different flanking door", r: 0, res: "Your calm voice keeps them steady. They find an alternate air duct, meeting back up with you." },
+                          { text: "🪙 [Charisma (Deception)] Tell them you are leaving to find help, running ahead alone", r: -1, res: "They feel completely abandoned in the heat. They escape on their own, but trust is fractured." },
+                          { text: "🛡️ [Class: Knight] Ram your shield under the dropping iron teeth, bracing the entire load manually", r: 2, res: "Using absolute physical strength, you hold the crushing weight on your shoulders while they dive out." }
+                      ]},
+                    { t: "A collapsing stone courtyard bridge leaves the path fragmented while enemy trebuchets target the area.", p: "Knight",
+                      o: [
+                          { text: "🧭 [Wisdom (Survival)] Time the ballistic trajectory lines to dash across between impacts", r: 1, res: "You lead a clean run across the shaking masonry right as a boulder impacts behind you." },
+                          { text: "🏃 [Dexterity (Acrobatics)] Execute a series of swift leaps across the crumbling gap segments", r: 0, res: "You vault across the broken segments cleanly, catching your balance on the secure side." },
+                          { text: "🗣️ [Charisma (Intimidation)] Stand in the open and roar a challenge, losing focus on foot placement", r: -1, res: "A near-miss explosion throws you into the dust, bruising your leg and forcing your partner to haul you up." },
+                          { text: "🛡️ [Class: Knight] Raise your bulwark aegis shield to fully absorb the flying shrapnel for the party", r: 2, res: "You form an iron wall against the fragments, deflecting the lethal debris seamlessly." }
+                      ]}
+                ],
+                combats: ["an elite crimson Wyvern diving from the battlements breathing raw flame", "a deadly squad of elite dark spell-swords wielding high-voltage lightning blades", "an undead Death Knight wielding a massive frost-imbued greatsword"]
+            },
+            5: {
+                name: "Act V: The Obsidian Apex",
+                obstacles: [
+                    { t: "The entry stairs up the frozen mountain peak are covered in slick black ice under a thin atmosphere.", p: "Knight",
+                      o: [
+                          { text: "🔍 [Intelligence (Investigation)] Analyze the rock fractures to follow secure stone handholds", r: 1, res: "You scale the treacherous ascent without letting anyone lose their footing." },
+                          { text: "🏃 [Strength (Athletics)] Brute force your way up the icy slope using weapon blades as spikes", r: 0, res: "You aggressively hammer your way up, reaching the summit with burning muscles." },
+                          { text: "🗣️ [Charisma (Intimidation)] Force the pace, demanding the party ignore the oxygen deprivation", r: -1, res: "Your partner slips on the glaze, catching themselves but suffering an ugly wrist strain." },
+                          { text: "🛡️ [Class: Knight] Plant your bulwark shield firmly into the ice to anchor a climbing tether line", r: 2, res: "You create an absolute anchor point, transforming a deadly hazard into a routine rope walk." }
+                      ]}
+                ],
+                combats: ["a giant Obsidian Golem constructed from the mountain's living rock core", "the High Demon Lord's Inner Council Mages casting fields of chain lightning", "the final chaotic shadows of the high throne room matrix dimensions"]
+            }
+        };
+
+        function getActiveActTheme(ch) {
+            if (ch <= 20) return actThemes[1];
+            if (ch <= 40) return actThemes[2];
+            if (ch <= 60) return actThemes[3];
+            if (ch <= 80) return actThemes[4];
+            return actThemes[5];
+        }
+
+        // Core D&D Campaign Engine Router
         function getChapterData(ch, partner) {
-            // Dynamic generation templates for structural generation fallback values
-            const standardCombatOptions = [
-                { text: "⚔️ [Dexterity (Acrobatics)] Coordinate a swift flanking assault combo", romance: 1, textOutcome: "You time your advance perfectly, flashing past the target's armor line to expose a clean opening." },
-                { text: "🛡️ [Strength (Athletics)] Dig your boots in and draw the total combat aggro", romance: 0, textOutcome: "You slam your weapon against your armor, forcing the enemy focus entirely onto your defensive stance." },
-                { text: "🏃 [Wisdom (Survival)] Pull back into the immediate layout brush to reassess", romance: 1, textOutcome: "You duck behind structural covers, locating a major tactical exploit path to call out to your partner." },
-                { text: "😡 [Charisma (Intimidation)] Charge forward screaming a chaotic battle challenge", romance: -1, textOutcome: "Your wild assault breaks the party line. You deal damage, but leave your flanks dangerously unprotected." }
-            ];
+            const currentAct = getActiveActTheme(ch);
+            
+            // Standard Explicit Milestone Router Loops
+            if (ch === 1) {
+                return {
+                    desc: `You gasp for air, collapsing onto a bed of damp earth and pine needles. The blinding light of an intricate summoning circle fades on the ground beneath you. Your head throbs, and your clothes are completely out of place here. Reaching into your pocket, you pull out your Earth cell phone—there is zero service, but its offline screen flickers to life, strangely vibrating in sync with the ambient energy. As you stand up trying to process your new body's **${gameState.subType}** abilities, a branch snaps. ${partner.name}, ${partner.role}, drops from the canopy above with a weapon drawn. "State your name and business, traveler! I saw the summoning rift from the valley!"`,
+                    options: [
+                        { text: "🤝 [Charisma (Persuasion)] Lower your hands and offer a peaceful explanation", romance: 1, textOutcome: "Your honest, open posture puts them at ease. Lowering the weapon slightly, they listen to your bizarre tale with growing curiosity." },
+                        { text: "🛡️ [Strength (Athletics)] Brace your posture and prepare for an immediate duel", romance: 0, textOutcome: "Steel meets steel with a violent ring! The quick exchange tests your baseline reflexes, earning a nod of begrudging tactical respect." },
+                        { text: "🪙 [Charisma (Deception)] Claim you're a high-ranking traveling merchant who got lost", romance: -1, textOutcome: "They scan your strange modern clothes, narrowing their eyes in deep suspicion at the obviously fabricated explanation." }
+                    ]
+                };
+            }
+            
+            if (ch === 99) {
+                return {
+                    desc: `[ACT V: FINAL Apex] The High Demon Lord shatters into dust! However, his dying curse triggers a catastrophic structural collapse of the obsidian throne room. A massive falling stone column is plummeting straight toward an unconscious, exhausted ${partner.name}! Simultaneously, your phone flashes with a blinding portal signal—your one chance to warp safely back to Earth is active right now.`,
+                    options: [
+                        { text: "❤️ [SACRIFICE - AFFINITY +10] Throw yourself over them, using your body to tank the blast!", romance: 10, textOutcome: "Without a single thought for yourself, you dive over them. The debris smashes down, fracturing your armor but keeping them completely untouched as the portal shatters." },
+                        { text: "🏃 [RUN - AFFINITY Neutral] Drag them with you as you make a frantic dive toward the exit lines", romance: 0, textOutcome: "You frantically grab them by the collar, hauling their weight across the stone tiling just as the column crashes onto the exact space you occupied." },
+                        { text: "✨ [LEAVE - AFFINITY Down] Dive directly into the glowing phone portal to secure your safe return home", romance: -5, textOutcome: "Driven by the raw instinct to survive, you leap backward into the light. The dimensional gate snaps shut behind you, leaving the realm behind forever." }
+                    ]
+                };
+            }
 
-            // Explicitly distinct chapter timeline roadmap strings
-            switch(ch) {
-                case 1:
-                    return {
-                        desc: `You gasp for air, collapsing onto a bed of damp earth and pine needles. The blinding light of an intricate summoning circle fades on the ground beneath you. Your head throbs, and your clothes are completely out of place here. Reaching into your pocket, you pull out your Earth cell phone—there is zero service, but its offline screen flickers to life, strangely vibrating in sync with the ambient energy. As you stand up trying to process your new body's **${gameState.subType}** abilities, a branch snaps. ${partner.name}, ${partner.role}, drops from the canopy above with a weapon drawn. "State your name and business, traveler! I saw the summoning rift from the valley!"`,
-                        options: [
-                            { text: "🤝 [Charisma (Persuasion)] Lower your hands and offer a peaceful explanation", romance: 1, textOutcome: "Your honest, open posture puts them at ease. Lowering the weapon slightly, they listen to your bizarre tale with growing curiosity." },
-                            { text: "🛡️ [Strength (Athletics)] Brace your posture and prepare for an immediate duel", romance: 0, textOutcome: "Steel meets steel with a violent ring! The quick exchange tests your baseline reflexes, earning a nod of begrudging tactical respect." },
-                            { text: "🪙 [Charisma (Deception)] Claim you're a high-ranking traveling merchant who got lost", romance: -1, textOutcome: "They scan your strange modern clothes, narrowing their eyes in deep suspicion at the obviously fabricated explanation." }
-                        ]
-                    };
-                case 2:
-                    return {
-                        desc: `Leaving the glowing ash of the summoning site behind, you sprint alongside ${partner.name}. The canopy overhead slams shut, casting the forest into deep twilight. Suddenly, the path ends at a massive briar patch tangled with thick, glowing purple thorns that hum with trace amounts of poison mana. You have to pass.`,
-                        perkClass: "Ranger",
-                        options: [
-                            { text: "🍎 [Sleight of Hand] Feed nearby berries to local dire-rodents to clear a route", romance: 1, textOutcome: "The critters pack together, chewing rapidly through the root systems to clear a narrow crawling gap for you." },
-                            { text: "🗣️ [Charisma (Intimidation)] Brandish a lit torch and violently slash at the brush", romance: -1, textOutcome: "The fire ignites a small pocket of poison gas. The fumes sting your lungs, causing your partner to pull you back in frustration." },
-                            { text: "⚙️ [Dexterity (Acrobatics)] Use nearby low boulders to vault cleanly over the wall", romance: 0, textOutcome: "You execute a clean aerial leap, clearing the thorns completely and landing safely on the opposite path." },
-                            { text: "🐾 [Class: Ranger] Apply Natural Kinship to pacify the living plant matrices", romance: 2, textOutcome: "You whistle a clean woodland melody. The toxic thorns smooth out, parting like an organic curtain to let you walk through." }
-                        ]
-                    };
-                case 3:
-                    return {
-                        desc: `Breaching the thickets, the path breaks into a rocky, uphill ravine. The sound of howling echoes from the dense trees to your left. A hunting pack of feral dire-wolves sweeps down from the ridge line, red eyes locked onto your strange planar scent!`,
-                        options: standardCombatOptions
-                    };
-                case 4:
-                    return {
-                        desc: `With the wolves scattered, you push higher up the ridge line. The path turns treacherous as you reach a broken wooden suspension bridge spanning a yawning canyon gap. The support ropes are frayed to the final thread, swaying over an absolute drop.`,
-                        perkClass: "Ranger",
-                        options: [
-                            { text: "🔍 [Intelligence (Investigation)] Analyze the line stress to step precisely on support joints", romance: 1, textOutcome: "You map out a safe stepping route, navigating the swaying structure without putting load on the decaying links." },
-                            { text: "🏃 [Strength (Athletics)] Sprint across at top speed before the planks can detach", romance: 0, textOutcome: "You sprint hard. Planks splinter into the abyss behind your boots, but your forward momentum carries you across." },
-                            { text: "🗣️ [Charisma (Persuasion)] Suggest that your companion test the stability lines first", romance: -1, textOutcome: "They give you an icy look, crossing effortlessly on their own but leaving your party coordination scores dinged." },
-                            { text: "🏹 [Class: Ranger] Fire a high-tension grapple rope to reinforce the collapsing anchor framework", romance: 2, textOutcome: "Your arrow flies true, embedding a steel-bound cable that completely stabilizes the frame into a rigid, safe walkway." }
-                        ]
-                    };
-                case 5:
-                    return {
-                        desc: `Safely across the canyon, the trail dips down into a dense, muddy marshland. Deep bubbles gurgle in the black mire nearby. Without warning, a towering swamp horror—a mass of rotted roots and glowing eyes—surges out of the mud blocks!`,
-                        options: standardCombatOptions
-                    };
-                
-                // CATCH-ALL ROUTER FOR THE 100-CHAPTER MARATHON (Guarantees infinite distinct steps)
-                default:
-                    // Campfire Respite Rules (Every 10 chapters)
-                    if (ch % 10 === 0) {
-                        return {
-                            desc: `[Campfire Respite - Chapter ${ch}] The camp is quiet as you check your phone screen. ${partner.name} sits down near the embers. "${gameState.name}... I've monitored your unique skills. You don't match the baseline locals of this realm. When this crisis is conquered... do you truly intend to slip back to your home world, or stay?"`,
-                            options: [
-                                { text: "❤️ [Affinity +1] \"My home is right here next to you now. I'm staying.\"", romance: 2, textOutcome: "A beautiful smile crosses their face in the warm firelight. They reach out, squeezing your hand with absolute devotion." },
-                                { text: "⚖️ [Affinity Neutral] \"I honestly don't know what's left for me there or here. Let's just focus on surviving.\"", romance: 0, textOutcome: "They nod silently, staring deeply into the orange sparks, respecting the heavy weight of your perspective." },
-                                { text: "✨ [Affinity -1] \"I have people back on Earth. I have to find a way back if it's possible.\"", romance: -1, textOutcome: "Their eyes dim slightly as they stare into the ashes, a quiet distance settling between you as reality hits." }
-                            ]
-                        };
-                    }
-                    
-                    // Chapter 99 Climax Override
-                    if (ch === 99) {
-                        return {
-                            desc: `[ACT V: THE OBSIDIAN APEX] The High Demon Lord shatters into dust! However, a cataclysmic structural collapse triggers inside the throne room. A falling stone column plummets straight toward an unconscious, exhausted ${partner.name}! Simultaneously, your phone flashes with a blinding portal signal—your one chance to warp safely back to Earth is active right now.`,
-                            options: [
-                                { text: "❤️ [SACRIFICE - AFFINITY +10] Throw yourself over them, using your body to tank the blast!", romance: 10, textOutcome: "Without a single thought for yourself, you dive over them. The debris smashes down, fracturing your armor but keeping them completely untouched." },
-                                { text: "🏃 [RUN - AFFINITY Neutral] Drag them with you as you make a frantic dive toward the exit lines", romance: 0, textOutcome: "You grab them by the collar, hauling their weight across the stone tiling just as the column crashes onto the exact space you occupied." },
-                                { text: "✨ [LEAVE - AFFINITY Down] Dive directly into the glowing phone portal to secure your safe return home", romance: -5, textOutcome: "Driven by the raw instinct to survive, you leap backward into the light. The dimensional gate snaps shut behind you, leaving the realm behind." }
-                            ]
-                        };
-                    }
+            if (ch === 100) {
+                return {
+                    desc: `The cataclysm settles completely. The dust clears over the ruined throne room floor. The dark rifts are silent, and the realm has been decisively saved. Standing among the remnants of the final battle line, you turn toward ${partner.name} to face the final calculation of your timeline journey.`,
+                    options: [{ text: "🌌 Complete the journey parameters and witness your final fate.", romance: 0, textOutcome: "The parameters compile your decisions..." }]
+                };
+            }
 
-                    if (ch === 100) {
-                        return {
-                            desc: `The dust clears over the ruined throne room floor. The dark rifts are silent, and the realm has been decisively saved. Standing among the remnants of the final battle line, you turn toward ${partner.name} to face the final calculation of your journey.`,
-                            options: [{ text: "🌌 Complete the journey parameters and witness your final fate.", romance: 0, textOutcome: "The parameters compile..." }]
-                        };
-                    }
+            // Campfire Milestones (Every 10 Chapters)
+            if (ch % 10 === 0) {
+                return {
+                    desc: `[Campfire Respite - Chapter ${ch}] The camp is quiet as you check your phone screen. ${partner.name} sits down near the embers. "${gameState.name}... I've monitored your unique skills. You don't match the baseline locals of this realm. When this crisis is conquered... do you truly intend to slip back to your home world, or stay?"`,
+                    options: [
+                        { text: "❤️ [Affinity +1] \"My home is right here next to you now. I'm staying.\"", romance: 2, textOutcome: "A beautiful smile crosses their face in the warm firelight. They reach out, squeezing your hand with absolute devotion." },
+                        { text: "⚖️ [Affinity Neutral] \"I honestly don't know what's left for me there or here. Let's just focus on surviving.\"", romance: 0, textOutcome: "They nod silently, staring deeply into the orange sparks, respecting the heavy weight of your perspective." },
+                        { text: "✨ [Affinity -1] \"I have people back on Earth. I have to find a way back if it's possible.\"", romance: -1, textOutcome: "Their eyes dim slightly as they stare into the ashes, a quiet distance settling between you as reality hits." }
+                    ]
+                };
+            }
 
-                    // Dynamically generate procedural unique variations for standard intermediate chapters to ensure zero overlapping loops
-                    const isExploration = (ch % 2 === 0);
-                    if (isExploration) {
-                        const obstacleTypes = ["a locked crypt gate", "a massive boulder block", "an unstable ancient rune font", "a suspicious guard station"];
-                        const currentObstacle = obstacleTypes[ch % obstacleTypes.length];
-                        return {
-                            desc: `[Exploration Chapter ${ch}] Pressing forward through the landscape coordinates, the terrain shifts. The path is completely obstructed by ${currentObstacle}. ${partner.name} stands alert, waiting for your tactical instruction string.`,
-                            perkClass: ch % 4 === 0 ? "Assassin" : ch % 4 === 2 ? "Ranger" : "Summoner",
-                            options: [
-                                { text: `💥 [Strength (Athletics)] Attempt to forcefully smash past the ${currentObstacle}`, romance: 0, textOutcome: `You exert total physical force against the obstruction, managing to break or dislodge the path layout after significant effort.` },
-                                { text: `🔍 [Intelligence (Investigation)] Search the immediate vicinity for hidden switch bypass mechanisms`, romance: 1, textOutcome: "Your sharp observation flags a concealed mechanical lever, causing the roadblock to clear smoothly." },
-                                { text: `🏃 [Dexterity (Stealth)] Try to delicately navigate around the outer edge perimeter`, romance: 0, textOutcome: "You slip past the perimeter bounds, guiding the party safely without unsettling the structure tracking." }
-                            ]
-                        };
-                    } else {
-                        const enemyTypes = ["a wandering squad of skeletal archers", "a ravenous crimson manticore", "an unstable shadow wraith", "a pack of armored elite orc raiders"];
-                        const currentEnemy = enemyTypes[ch % enemyTypes.length];
-                        return {
-                            desc: `[Combat Chapter ${ch}] Danger alerts spike! ${currentEnemy} bursts from the flanking corridor grid, weapons drawn! ${partner.name} leaps into standard battle stance by your side!`,
-                            options: standardCombatOptions
-                        };
-                    }
+            // Dynamic Step Calculations to fully separate all 100 entries from loops
+            const isExploration = (ch % 2 === 0);
+            const dataIndex = Math.floor(ch / 2) % currentAct.obstacles.length;
+            
+            if (isExploration) {
+                const obs = currentAct.obstacles[dataIndex];
+                // Remap options array explicitly into structural game schema
+                return {
+                    desc: `[Exploration Stage] Moving deeper through the region coordinates, the terrain shifts dramatically. <br><br><span class='text-white font-semibold'>Roadblock Objective:</span> ${obs.t}`,
+                    perkClass: obs.p,
+                    options: obs.o.map(opt => ({ text: opt.text, romance: opt.r, textOutcome: opt.res }))
+                };
+            } else {
+                const combatText = currentAct.combats[ch % currentAct.combats.length];
+                return {
+                    desc: `[Combat Stage] Danger alerts spike! Moving along the campaign line, **${combatText}** surges forward with weapons drawn! ${partner.name} leaps into battle formation by your side!`,
+                    options: [
+                        { text: "⚔️ [Dexterity (Acrobatics)] Coordinate a swift flanking assault combo with your companion", romance: 1, textOutcome: "You time your advance perfectly, flashing past the target's shield line to expose a clean opening." },
+                        { text: "🛡️ [Strength (Athletics)] Dig your boots in and draw the total combat aggro onto your stance", romance: 0, textOutcome: "You slam your weapon against your armor, forcing the enemy focus entirely onto your defensive stance." },
+                        { text: "🏃 [Wisdom (Survival)] Pull back into the immediate layout brush to reassess structural weaknesses", romance: 1, textOutcome: "You duck behind cover, locating a major tactical exploit path to call out to your partner." },
+                        { text: "😡 [Charisma (Intimidation)] Charge forward screaming a chaotic battle challenge", romance: -1, textOutcome: "Your wild assault breaks the party line. You deal damage, but leave your companion unprotected." }
+                    ]
+                };
             }
         }
 
-        // Main Story Render Engine Loop
+        // Core Render Viewport Loop
         function renderStoryLoop() {
             updateHUD();
             const partner = getRomancePartner();
@@ -336,9 +415,9 @@
             
             let choices = [...chData.options];
             
-            // Inject the 4th choice ONLY if the chapter template has a perk block matching your class profile
+            // Unlink 4th choice explicitly if character class doesn't match the roadblock specialty
             if (chData.perkClass && gameState.subType !== chData.perkClass && choices.length === 4) {
-                choices.pop(); // Remove the template placeholder 4th choice if the class doesn't match
+                choices.pop();
             }
 
             const runtimeDescriptionText = `
@@ -376,7 +455,6 @@
 
         function renderConsequenceScreen(actionTaken, outcomeText, scoreMod) {
             gameState.romanceScore += scoreMod;
-            
             let affinityIconHTML = `<span>⚖️ Affinity Unchanged</span>`;
             if (scoreMod > 0) affinityIconHTML = `<span class="text-emerald-400 font-semibold">💘 Affinity Increased (+${scoreMod})</span>`;
             if (scoreMod < 0) affinityIconHTML = `<span class="text-rose-400 font-semibold">💔 Affinity Decreased (${scoreMod})</span>`;
@@ -388,13 +466,11 @@
                             <span class="text-[10px] font-mono tracking-wider text-indigo-400 uppercase block font-bold">Action Undertaken</span>
                             <p class="text-xs text-slate-400 italic">${actionTaken}</p>
                         </div>
-                        
                         <div class="space-y-2 pt-2">
                             <span class="text-[10px] font-mono tracking-wider text-amber-400 uppercase block font-bold">Result Timeline Outcome</span>
                             <p class="text-slate-200 leading-relaxed text-sm">${outcomeText}</p>
                         </div>
                     </div>
-
                     <div class="space-y-4 pt-4 border-t border-slate-800 shrink-0 bg-slate-900">
                         <div class="text-center text-xs">
                             ${affinityIconHTML}
@@ -464,14 +540,7 @@
         }
 
         function resetGame() {
-            gameState = {
-                subType: '',
-                name: '',
-                gender: '',
-                partnerPref: '',
-                currentChapter: 1,
-                romanceScore: 0
-            };
+            gameState = { subType: '', name: '', gender: '', partnerPref: '', currentChapter: 1, romanceScore: 0 };
             initMainMenu();
         }
 
