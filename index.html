@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Isekai Realms: D&D Chronicles</title>
-    <!-- Tailwind CSS for mobile portrait layout -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght=400;600;700&display=swap');
@@ -13,10 +12,8 @@
 </head>
 <body class="bg-slate-950 text-slate-100 flex justify-center items-center min-h-screen p-4 select-none">
 
-    <!-- Mobile Screen Frame Container -->
     <div class="w-full max-w-md bg-slate-900 border-2 border-slate-800 rounded-2xl shadow-2xl flex flex-col h-[90vh] overflow-hidden">
         
-        <!-- Game Header / HUD -->
         <header class="bg-slate-950 px-6 py-4 border-b border-slate-800 flex justify-between items-center shrink-0">
             <h1 class="text-xs font-bold tracking-widest text-indigo-400 uppercase font-mono" id="hud-act">Act I: Awakening</h1>
             <div id="hud-stats" class="text-xs text-slate-400 hidden">
@@ -25,30 +22,13 @@
             </div>
         </header>
 
-        <!-- Dynamic Game Content Viewport -->
         <main id="game-viewport" class="flex-1 overflow-y-auto p-6 flex flex-col justify-between space-y-6">
-            <!-- Content Injected Dynamically -->
-        </main>
+            </main>
         
     </div>
 
     <script>
-        // Core Game State Model with Integrated Character Sheet
-        let gameState = {
-            subType: '',       
-            name: '',
-            gender: '',        
-            partnerPref: '',   
-            currentChapter: 1, 
-            romanceScore: 0,
-            stats: { str: 5, dex: 5, int: 5, wis: 5 }
-        };
-
-        const view = document.getElementById('game-viewport');
-        const hud = document.getElementById('hud-stats');
-        const hudAct = document.getElementById('hud-act');
-
-        // Core D&D Attribute Roadblocks Database
+        // GLOBAL DATA DEFINITIONS FIRST (Guarantees zero variable parsing collisions)
         const actThemes = {
             1: {
                 name: "Act I: The Awakening & The Wilds",
@@ -57,7 +37,7 @@
                       o: [
                           { text: "👁️ [Wisdom Check] Quietly study the organic grid patterns to unweave a path vector", stat: "wis", r: 1, res: "Your focus maps out a clean crawl-line. You slide through the brush cleanly without triggering thorn traps.", failRes: "You misread the growth vectors. A toxic thorn tears your cloak, leaking trace poison that leaves you winded while your companion clears the path." },
                           { text: "👟 [Dexterity Check] Attempt a series of swift vaults across the surrounding high rocks", stat: "dex", r: 0, res: "You vault the boulders cleanly, dropping safely down on the opposite path.", failRes: "Your boot slips on a loose shale rock. You tumble back into the mud, bruising your shoulder before scrambling past dynamically." },
-                          { text: "💪 [Strength Check] Forcefully slash your way through the smaller outer brambles", stat: "str", r: 0, res: "You clear a passage through brute force, though a stray prick makes your skin sting slightly.", failRes: "Your heavy swings lodge your weapon deep into a thick core vine. You lose valuable seconds tearing it free under stress." }
+                          { text: "💪 [Strength Check] Forcefully slam your heavy arms down to shatter the smaller outer brambles", stat: "str", r: 0, res: "You clear a passage through brute force, though a stray prick makes your skin sting slightly.", failRes: "Your heavy swings lodge your weapon deep into a thick core vine. You lose valuable seconds tearing it free under stress." }
                       ]},
                     { t: "The mountain trail terminates at a fractured wooden suspension bridge. The support lines are frayed down to a single rotten wire strand over a bottomless void canyon.",
                       o: [
@@ -130,14 +110,13 @@
             }
         };
 
-        // FIXED: Balanced Campfire database offering Wisdom, Wit (INT), and Action (STR/DEX) parity
         const campfireDatabase = {
             10: {
                 desc: "The deep woods are dead silent save for the fire's crackle. Sitting across from you on a pine trunk, your companion breaks a travel biscuit. \"You look completely out of place staring at that glowing mirror box. Tell me the truth... where did you actually come from? No more fairy tales.\"",
                 options: [
                     { text: "👁️ [Wisdom Check] Openly explain the structure of Earth, sharing your raw displacement vulnerably", stat: "wis", romance: 2, textOutcome: "They study your eyes intently as you speak of glass webs. Sensing no deceit, they nod softly. 'A strange world, but it explains your wonder here.'", failRes: "Your tone layout feels overly dramatic. They narrow their eyes, sighing. 'A world of glass towers? You are a terrible storyteller, traveler.'" },
                     { text: "📜 [Intelligence Check] Offer a witty, analytical comparison between computer boards and runic layouts", stat: "int", romance: 2, textOutcome: "They let out a sudden, rare laugh at your technical breakdown. 'So your home runs on invisible formulas too? Fascinating.'", failRes: "Your complex analogies spin completely out of control. They blink blankly, shaking their head. 'You sound like a malfunctioning archive.'" },
-                    { text: "👟 [Dexterity Check] Swiftly roll your phone between your fingers, performing an tracking sleight-of-hand flourish to ease tension", stat: "dex", romance: 2, textOutcome: "Your swift physical coordination catches them off guard, a warm smile breaking their guard. 'Impressed. You have capable hands, stranger.'", failRes: "Your fingers falter. The phone drops directly into the dirt framework, breaking the dramatic timing completely as you scramble for it." }
+                    { text: "👟 [Dexterity Check] Swiftly roll your phone between your fingers, performing a tracking sleight-of-hand flourish to ease tension", stat: "dex", romance: 2, textOutcome: "Your swift physical coordination catches them off guard, a warm smile breaking their guard. 'Impressed. You have capable hands, stranger.'", failRes: "Your fingers falter. The phone drops directly into the dirt framework, breaking the dramatic timing completely as you scramble for it." }
                 ]
             },
             20: {
@@ -161,7 +140,7 @@
                 options: [
                     { text: "👁️ [Wisdom Check] Firmly tie the bandage, refusing the premise with quiet resolve", stat: "wis", romance: 3, textOutcome: "'We leave together or we don't leave at all.' They copy your gaze, a deep warmth settling over their posture. 'Foolish, but I'm glad to hear it.'", failRes: "Your hand slips slightly on the linen knot. They pull back with a sigh. 'Don't let sentimentality get us both killed in the dark pools.'" },
                     { text: "📜 [Intelligence Check] Wittily note that leaving your highest-performing damage dealer behind violates all sound combat directives", stat: "int", romance: 3, textOutcome: "They roll their eyes but a bright smirk breaks through. 'Analytical to the end. Fine, I wouldn't want to ruin your tactical algorithms.'", failRes: "The cold tactical assessment sounds uncaring. They pull their arm back sharply. 'Good to know I'm just a performance asset in your equations.'" },
-                    { text: "💪 [Strength Check] Lock your hand around their wrist, anchoring your physical presence to match the promise", stat: "str", romance: 3, textOutcome: "Your solid, immovable grasp completely silences their anxiety. They nod slowly, feeling your raw commitment. 'I hear you. I won't ask again.'", failRes: "You squeeze a bit too hard against the fresh scrape, making them wince in sharp discomfort. 'Too aggressive. Mind the wound line.'" }
+                    { text: "💪 [Strength Check] Lock your hand around their wrist, anchoring your physical presence to match the promise", stat: "str", romance: 3, textOutcome: "Your solid, unwavering grasp completely silences their anxiety. They nod slowly, feeling your raw commitment. 'I hear you. I won't ask again.'", failRes: "You squeeze a bit too hard against the fresh scrape, making them wince in sharp discomfort. 'Too aggressive. Mind the wound line.'" }
                 ]
             },
             50: {
@@ -204,6 +183,25 @@
             }
         };
 
+        // CORE ENGINE LOGIC FUNCTIONS
+        let gameState = {
+            subType: '',       
+            name: '',
+            gender: '',        
+            partnerPref: '',   
+            currentChapter: 1, 
+            romanceScore: 0,
+            stats: { str: 5, dex: 5, int: 5, wis: 5 }
+        };
+
+        function getActiveActTheme(ch) {
+            if (ch <= 20) return actThemes[1];
+            if (ch <= 40) return actThemes[2];
+            if (ch <= 60) return actThemes[3];
+            if (ch <= 80) return actThemes[4];
+            return actThemes[5];
+        }
+
         function getTargetDC(ch) {
             if (ch <= 20) return 13;   
             if (ch <= 40) return 16;   
@@ -240,14 +238,6 @@
             return { name: 'Eldrin', role: 'the Rogue High Elf Mage' }; 
         }
 
-        function getActiveActTheme(ch) {
-            if (ch <= 20) return actThemes[1];
-            if (ch <= 40) return actThemes[2];
-            if (ch <= 60) return actThemes[3];
-            if (ch <= 80) return actThemes[4];
-            return actThemes[5];
-        }
-
         function getChapterData(ch, partner) {
             const currentAct = getActiveActTheme(ch);
             
@@ -260,7 +250,7 @@
 
             if (ch === 1) {
                 return {
-                    desc: `You gasp for air, collapsing onto a bed of damp earth and pine needles. The blinding light of an intricate summoning circle fades on the ground beneath you. Your head throbs, and your clothes are completely out of place here. Reaching into your pocket, you pull out your Earth cell phone—there is zero service, but its offline screen flickers to life, strangely vibrating in sync with the ambient energy. As you stand up trying to process your new body's **${gameState.subType}** abilities, a branch snaps. ${partner.name}, ${partner.role}, drops from the canopy above with a weapon drawn. \"State your name and business, traveler! I saw the summoning rift from the valley!\"`,
+                    desc: `You gasp for air, collapsing onto a bed of damp earth and pine needles. The blinding light of an intricate summoning circle fades on the ground beneath you. Your head throbs, and your clothes are completely out of place here. Reaching into your pocket, you pull out your Earth cell phone—there is zero service, but its offline screen flickers to life, strangely vibrating in sync with the ambient energy. As you stand up trying to process your new body's **${gameState.subType}** abilities, a branch snaps. ${partner.name}, ${partner.role}, drops from the canopy above with a weapon drawn. "State your name and business, traveler! I saw the summoning rift from the valley!"`,
                     options: [
                         { text: "👁️ [Wisdom Check] Lower your hands slowly and articulate a calm explanation string", stat: "wis", romance: 1, textOutcome: "Your honest posture puts them at ease. Lowering the weapon, they listen to your bizarre tale with deep curiosity.", failRes: "Your voice cracks heavily under the stress of the portal shift. You sound highly erratic, causing them to keep their blade edge leveled right at your throat." },
                         { text: "💪 [Strength Check] Brace your balance profile and prepare for an immediate martial exchange", stat: "str", romance: 0, textOutcome: "Steel meets steel with a violent ring! The physical trade tests your baseline muscle groups, earning a nod of respect.", failRes: "You swing wildly with your unfamiliar limbs. They effortlessly parry your balance vector away, pinning you into the dirt within seconds." }
@@ -374,6 +364,74 @@
                             ✨ Begin New Awakening
                         </button>
                     </div>
+                </div>
+            `;
+        }
+
+        function initClassScreen() {
+            view.innerHTML = `
+                <div class="flex-1 flex flex-col justify-center space-y-6">
+                    <div class="text-center space-y-2">
+                        <h2 class="text-2xl font-bold text-white">Select Your Class</h2>
+                        <p class="text-slate-400 text-sm">Your physical awakening ruleset inside the magical plane.</p>
+                    </div>
+                    <div class="flex flex-col space-y-3">
+                        <button onclick="selectClass('Summoner')" class="w-full py-4 px-6 bg-indigo-950 hover:bg-indigo-900 text-left font-semibold text-white rounded-xl transition-all border border-indigo-500/30 active:scale-95 flex justify-between items-center">
+                            <span>🔮 Summoner</span> <span class="text-xs text-indigo-400">INT & WIS Focus</span>
+                        </button>
+                        <button onclick="selectClass('Ranger')" class="w-full py-4 px-6 bg-emerald-950 hover:bg-emerald-900 text-left font-semibold text-white rounded-xl transition-all border border-emerald-500/30 active:scale-95 flex justify-between items-center">
+                            <span>🏹 Ranger</span> <span class="text-xs text-emerald-400">DEX & WIS Focus</span>
+                        </button>
+                        <button onclick="selectClass('Assassin')" class="w-full py-4 px-6 bg-rose-950 hover:bg-rose-900 text-left font-semibold text-white rounded-xl transition-all border border-rose-500/30 active:scale-95 flex justify-between items-center">
+                            <span>🗡️ Assassin</span> <span class="text-xs text-rose-400">DEX & INT Focus</span>
+                        </button>
+                        <button onclick="selectClass('Knight')" class="w-full py-4 px-6 bg-slate-800 hover:bg-slate-700 text-left font-semibold text-white rounded-xl transition-all border border-slate-600 active:scale-95 flex justify-between items-center">
+                            <span>🛡️ Knight</span> <span class="text-xs text-slate-400">STR & DEX Focus</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectClass(choice) {
+            gameState.subType = choice;
+            if (choice === 'Knight') { gameState.stats = { str: 10, dex: 10, int: 5, wis: 5 }; }
+            else if (choice === 'Summoner') { gameState.stats = { str: 5, dex: 5, int: 10, wis: 10 }; }
+            else if (choice === 'Ranger') { gameState.stats = { str: 5, dex: 10, int: 5, wis: 10 }; }
+            else if (choice === 'Assassin') { gameState.stats = { str: 5, dex: 10, int: 10, wis: 5 }; }
+            initCharacterCreation();
+        }
+
+        function initCharacterCreation() {
+            view.innerHTML = `
+                <div class="flex-1 flex flex-col justify-center space-y-5">
+                    <div class="text-center space-y-1">
+                        <h2 class="text-xl font-bold text-white">Identity Awakening</h2>
+                        <p class="text-slate-400 text-sm">Etch your parameters into the tapestry.</p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-semibold tracking-wider text-slate-400 uppercase">True Name</label>
+                        <input id="char-name" type="text" placeholder="Enter name..." class="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white font-medium focus:outline-none focus:border-indigo-500 text-base">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-semibold tracking-wider text-slate-400 uppercase">Are you Male, Female, or Non-Binary?</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="setStateVar(this, 'gender', 'Male', 'g-btn')" class="g-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all">Male</button>
+                            <button onclick="setStateVar(this, 'gender', 'Female', 'g-btn')" class="g-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all">Female</button>
+                            <button onclick="setStateVar(this, 'gender', 'Non-Binary', 'g-btn')" class="g-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all">Non-Binary</button>
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-semibold tracking-wider text-slate-400 uppercase">Who catches your eye in this realm?</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="setStateVar(this, 'partnerPref', 'Female', 'p-btn')" class="p-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all">Women</button>
+                            <button onclick="setStateVar(this, 'partnerPref', 'Male', 'p-btn')" class="p-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all">Men</button>
+                            <button onclick="setStateVar(this, 'partnerPref', 'Non-Binary', 'p-btn')" class="p-btn py-2.5 bg-slate-800 text-xs text-slate-300 rounded-xl border border-slate-700 font-medium transition-all">Fluid</button>
+                        </div>
+                    </div>
+                    <button onclick="submitCharacter()" class="w-full mt-2 py-3.5 bg-indigo-600 hover:bg-indigo-500 font-bold text-white rounded-xl active:scale-95 transition-all shadow-lg shadow-indigo-900/20">
+                        Cross the Threshold ⚡
+                    </button>
                 </div>
             `;
         }
@@ -593,6 +651,7 @@
             initMainMenu();
         }
 
+        // INITIALIZE PIPELINE EXECUTION
         initMainMenu();
     </script>
 </body>
