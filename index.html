@@ -130,6 +130,82 @@
             }
         };
 
+        // NEW: Fully unique Campfire Milestone Registry database
+        const campfireDatabase = {
+            10: {
+                desc: "The deep woods are dead silent save for the crackle of your small fire. You're trying to figure out how a modern phone links to a world of real magic. Sitting across from you on a fallen pine trunk, your companion breaks a dry travel biscuit. \"You look completely out of place staring at that glowing mirror box. Tell me the truth... where did you actually come from? No more fairy tales.\"",
+                options: [
+                    { text: "👁️ [Wisdom Check] Honestly detail the structure of Earth, describing its lack of magic with vulnerable detail", stat: "wis", romance: 2, 
+                      textOutcome: "They study your eyes intently as you speak of skyscrapers and digital webs. Sensing no deceit, they nod softly. 'A strange, lonely-sounding world. But it explains why you view our sky with such wonder.'",
+                      failRes: "Your explanation sounds wildly absurd and hard to trace. They narrow their eyes, sighing. 'A world of metal towers and glass mirrors? You are a terrible liar, traveler. Keep your secrets if you must.'" }
+                ]
+            },
+            20: {
+                desc: "Perched on a high ridge overlooking the winding low valley, the crisp mountain air cuts cold. Your companion looks back down toward the faint, glowing lamps of the towns below. \"We cross into the Borderlands tomorrow. The guild stakes are high, and the contracts get bloody. When this crisis settles... do you intend to run back to that metal world of yours, or make a home here?\"",
+                options: [
+                    { text: "👁️ [Wisdom Response] \"My home is right here next to you now. I'm staying.\"", stat: "wis", romance: 3, 
+                      textOutcome: "A beautiful smile crosses their face in the warm firelight. They reach out, squeezing your hand with absolute devotion. 'Then I will make sure we both survive to build it.'",
+                      failRes: "Your voice sounds overly practiced and corny in the quiet night air. They cross their arms, looking away into the embers. 'Don't make promises you can't keep just because the stars look nice, traveler.'" }
+                ]
+            },
+            30: {
+                desc: "You've slipped out onto the secluded stone balcony of the Borderlands Guild quarters, leaving behind the rowdy tavern songs of the mercenary crews below. Your companion leans against the heavy stone railing, staring into the dark tree lines. \"Everyone in that hall wants a piece of our reputation. They view us as weapons, not people. Do you ever feel like the expectations of this plane are choking you?\"",
+                options: [
+                    { text: "👁️ [Wisdom Check] Calmly articulate that you only focus on protecting the person standing right next to you", stat: "wis", romance: 2, 
+                      textOutcome: "They glance sideways at you, a soft look replacing their usual tense guard. 'You have a strange way of making an entire world feel small and simple, traveler. Thank you.'",
+                      failRes: "Your reassurance feels dismissive. They shake their head, adjusting their gauntlets. 'Easy to say when it isn't your homeland line on the breaking block. Let's just get some rest.'" }
+                ]
+            },
+            40: {
+                desc: "Huddled inside a half-collapsed stone watchtower on the High Moor, you use a scrap of linen to gently dab a minor armor scrape on your companion's forearm. They wince slightly but don't pull away. \"The descent into the shadow cracks tomorrow is an absolute one-way trek. If things go dark down there... promise me you'll use that glowing device to save yourself, even if it means leaving me behind.\"",
+                options: [
+                    { text: "👁️ [Wisdom Check] Firmly tie the bandage knot, refusing the premise with quiet resolve", stat: "wis", romance: 3, 
+                      textOutcome: "You look up, locking eyes. 'We leave together or we don't leave at all.' They stare for a long second, then let out a breath, a deep warmth settling over their posture. 'Foolish. But I'm glad to hear it.'",
+                      failRes: "Your hand slips slightly on the linen knot, causing them to wince and pull back. 'You hesitate. Don't let your sentimentality get us both killed in the dark pools. Let's set the watch rotations.'" }
+                ]
+            },
+            50: {
+                desc: "Deep inside the humid cavern layout, the air is thick with trace minerals. Your companion unbuckles their shoulder guards, completely exhausted. \"I never believed the old archival rifts about extra-planar entities. I thought anything from outside our plane would be a monster. But you... you're just a person. A person I've grown to depend on completely.\"",
+                options: [
+                    { text: "👁️ [Wisdom Check] Lean in closer, sharing a quiet, mutual moment of grounding peace", stat: "wis", romance: 2, 
+                      textOutcome: "You rest your shoulder against theirs. They lay their head down, closing their eyes in total comfort. 'Don't let the fire fade out tonight, traveler. I feel safe when you're awake.'",
+                      failRes: "You stiffen up nervously, misreading the shift in mood. They notice the cold distance, clearing their throat and putting their armor pieces back on awkwardly. 'Right. We should focus on the perimeter locks.'" }
+                ]
+            },
+            60: {
+                desc: "The camp fire is down to low blue embers inside the sunken archives vault. The weight of the ancient books around you is heavy. Your companion looks at a cracked stone mural of the Obsidian Apex. \"The dark spell lines are fracturing our world. I can feel the feedback in my marrow. If we fail at the summit, everything I am is ash. What happens to you if this realm breaks?\"",
+                options: [
+                    { text: "👁️ [Wisdom Check] State that your timeline is permanently bound to this realm's survival now", stat: "wis", romance: 2, 
+                      textOutcome: "They reach out, tracing the edge of your gauntlet. 'Then we carry the exact same destiny. Let's make the Demon Lord regret anchoring into our generation.'",
+                      failRes: "You stumble through a technical explanation of your phone's safety backup loops. They sigh, looking lonely. 'So you always have a trapdoor out. Must be nice to have options.'" }
+                ]
+            },
+            70: {
+                desc: "Huddled under a temporary hide shelter on the freezing slopes of the Shattered Citadel, snow beats hard against the canvas frames. You're sharing a single wool blanket, your breath pluming white in the air. \"I used to fight purely out of spite for the rifts,\" they whisper, shivering slightly. \"But now... I find myself fighting just to see what a quiet spring morning looks like with you. Is that pathetic?\"",
+                options: [
+                    { text: "👁️ [Wisdom Check] Wrap the blanket tighter around them, offering a genuine, heartfelt promise for that spring morning", stat: "wis", romance: 3, 
+                      textOutcome: "They lean heavily into your chest, their shivering slowing down as they melt into your warmth. 'Hold me to that promise, traveler. Don't let me forget how the sun feels.'",
+                      failRes: "You give a stiff, analytical tactical summary of your survival probabilities instead. They move away slightly, wrapping their cloak tightly. 'Right. Let's just focus on keeping the fire from freezing out.'" }
+                ]
+            },
+            80: {
+                desc: "The camp fire is just a glowing crack in the black ice of the final mountain plateau. The sky above is twisted into chaotic purple matrix spirals. Your companion looks at their blade, then back at you. \"The final gate is within walking distance. Tomorrow, we either save this world or die in the attempt. I need to hear it one last time before the ash clears... do you love me?\"",
+                options: [
+                    { text: "👁️ [Wisdom Response] Pull them into a fierce, absolute embrace and state your devotion clearly", stat: "wis", romance: 4, 
+                      textOutcome: "They wrap their arms around your neck, kissing you with fierce, desperate passion amid the howling winds. 'Then let the Apex fall. I am ready for anything by your side.'",
+                      failRes: "You freeze up, choked by the gravity of the looming final battle layout. They look down at their blade, a lonely but resigned smile on their face. 'I understand. Keep your mind on the target lines tomorrow.'" }
+                ]
+            },
+            90: {
+                desc: "You are camping on the literal threshold stone of the Obsidian Apex room. The air smells of sulfur and ozone. Your phone screen flashes continuously with high-voltage warning patterns—the gate to Earth is fully active and pulling your signal. Your companion watches the screen flicker. \"Your gateway home is singing to you. It knows you're close to the end. Are you scared of what happens when you have to choose?\"",
+                options: [
+                    { text: "👁️ [Wisdom Check] Reassure them that your choices were decided the day you met them in the woods", stat: "wis", romance: 3, 
+                      textOutcome: "They rest their forehead against yours, taking a deep, steadying breath. 'Then let the rifts collapse. We face the throne lord together.'",
+                      failRes: "Your eyes shift anxiously toward the flashing portal signal on the screen. They see your hesitation clearly, quietly turning back to sharpen their weapon in absolute silence." }
+                ]
+            }
+        };
+
         function checkExistingSave() {
             const localData = localStorage.getItem('isekai_chronicles_save');
             return localData ? JSON.parse(localData) : null;
@@ -144,12 +220,12 @@
             return false;
         }
 
-        function getActDifficultyMod(ch) {
-            if (ch <= 20) return 0;  
-            if (ch <= 40) return 3;  
-            if (ch <= 60) return 6;  
-            if (ch <= 80) return 9;  
-            return 12;               
+        function getTargetDC(ch) {
+            if (ch <= 20) return 13;   
+            if (ch <= 40) return 16;   
+            if (ch <= 60) return 20;   
+            if (ch <= 80) return 22;   
+            return 27;                 
         }
 
         function updateHUD() {
@@ -260,22 +336,15 @@
                 };
             }
 
-            // SPECIFIC CAMPFIRE LOGIC BUILT IN
+            // BUG FIXED: Dynamic Campfire Router loads distinct scene block objects based on exact chapter keys
             if (ch % 10 === 0) {
-                return {
-                    desc: `The camp is quiet as you check your phone screen. ${partner.name} sits down near the embers. "${gameState.name}... I've monitored your unique skills. You don't match the baseline locals of this realm. When this crisis is conquered... do you truly intend to slip back to your home world, or stay?"`,
-                    options: [
-                        { text: "👁️ [Wisdom Response] \"My home is right here next to you now. I'm staying.\"", stat: "wis", romance: 2, 
-                          textOutcome: "A beautiful smile crosses their face in the warm firelight. They reach out, squeezing your hand with absolute devotion.",
-                          failRes: "Your voice layout sounds overly practiced and corny in the quiet night air. They cross their arms, looking away into the embers. 'Don't make promises you can't keep just because the stars look nice, traveler.'" },
-                        { text: "👁️ [Wisdom Response] \"I honestly don't know what's left for me there or here. Let's just focus on surviving.\"", stat: "wis", romance: 0, 
-                          textOutcome: "They nod silently, staring deeply into the orange sparks, respecting the heavy weight of your perspective.",
-                          failRes: "Your absolute uncertainty leaves a lingering, heavy chill in the air. They shift away slightly, pulling their cloak tight as the distance between your positions widens." },
-                        { text: "👁️ [Wisdom Response] \"I have people back on Earth. I have to find a way back if it's possible.\"", stat: "wis", romance: -2, 
-                          textOutcome: "Their eyes dim slightly as they stare into the ashes, a quiet distance settling between you as reality hits.",
-                          failRes: "Your statement drops like a stone, coming off incredibly cold and detached. They abruptly stand up, volunteering to take the first watch shift alone to get away from you." }
-                    ]
-                };
+                const campfireScene = campfireDatabase[ch];
+                if (campfireScene) {
+                    return {
+                        desc: campfireScene.desc,
+                        options: campfireScene.options
+                    };
+                }
             }
 
             const isExploration = (ch % 2 === 0);
@@ -425,26 +494,24 @@
             renderStoryLoop();
         }
 
-        // FIX: Re-engineered Check to swap dynamically between custom fail text strings and tactical text strings
         function handleDiceRoll(actionTaken, outcomeText, statType, scoreMod, customFailText = "") {
             const dieRoll = Math.floor(Math.random() * 20) + 1; 
             const playerStatValue = gameState.stats[statType] || 10;
-            const difficultyMod = getActDifficultyMod(gameState.currentChapter);
+            const targetDC = getTargetDC(gameState.currentChapter);
             
-            const totalRollResult = dieRoll + difficultyMod;
-            const isSuccess = (totalRollResult <= playerStatValue);
+            const checkTotal = dieRoll + playerStatValue;
+            const isSuccess = (checkTotal >= targetDC);
 
             let resultTitle = "";
             let resultBody = "";
             let finalAffinityMod = scoreMod;
 
             if (isSuccess) {
-                resultTitle = `<span class="text-emerald-400 font-bold">🎯 CHECK SUCCESS (Rolled ${dieRoll} + Mod ${difficultyMod} = ${totalRollResult} vs Stat ${playerStatValue})</span>`;
+                resultTitle = `<span class="text-emerald-400 font-bold">🎯 CHECK SUCCESS (Rolled ${dieRoll} + Stat ${playerStatValue} = ${checkTotal} vs DC ${targetDC})</span>`;
                 resultBody = outcomeText;
             } else {
-                resultTitle = `<span class="text-rose-400 font-bold">❌ CHECK FAILURE (Rolled ${dieRoll} + Mod ${difficultyMod} = ${totalRollResult} vs Stat ${playerStatValue})</span>`;
+                resultTitle = `<span class="text-rose-400 font-bold">❌ CHECK FAILURE (Rolled ${dieRoll} + Stat ${playerStatValue} = ${checkTotal} vs DC ${targetDC})</span>`;
                 
-                // Switch out parameters if database string explicitly defines custom fail responses
                 if (customFailText && customFailText !== "undefined" && customFailText !== "") {
                     resultBody = customFailText;
                 } else {
@@ -581,7 +648,7 @@
             }).join('');
 
             view.innerHTML = `
-                <div class="flex-1 flex flex-col justify-between h-full">
+                <div class="w-full flex-1 flex flex-col justify-between h-full">
                     <div class="flex-1 pr-1 overflow-y-auto space-y-4 mb-4">
                         ${runtimeDescriptionText}
                     </div>
