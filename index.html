@@ -7,7 +7,7 @@
     <!-- Tailwind CSS for mobile portrait layout -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght=400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; font-size: 16px; }
     </style>
 </head>
@@ -517,9 +517,13 @@
                 renderEndGameScreen();
             } else {
                 gameState.currentChapter++;
+                const ch = gameState.currentChapter;
                 
-                for (let s in gameState.stats) {
-                    gameState.stats[s] += isMainStat(s) ? 4 : 2;
+                // BUG FIXED: Stats now scale explicitly when crossing into a NEW ACT milestone, matching our baseline balance matrices!
+                if (ch === 21 || ch === 41 || ch === 61 || ch === 81) {
+                    for (let s in gameState.stats) {
+                        gameState.stats[s] += isMainStat(s) ? 4 : 2;
+                    }
                 }
 
                 recompileSaveState();
