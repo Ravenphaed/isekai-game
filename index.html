@@ -248,8 +248,12 @@
         }
 
         function checkExistingSave() {
-            const localData = localStorage.getItem("isekai_chronicles_save");
-            return localData ? JSON.parse(localData) : null;
+            try {
+                const localData = localStorage.getItem("isekai_chronicles_save");
+                return localData ? JSON.parse(localData) : null;
+            } catch(e) {
+                return null;
+            }
         }
 
         function isMainStat(stat) {
@@ -365,11 +369,11 @@
             const savedState = checkExistingSave();
             let resumeButtonHTML = "";
             
-            if (savedState && savedState.currentChapter > 1 && savedState.currentChapter <= 100) {
+            if (savedState && savedState.currentChapter > 1 && savedState.currentChapter <= 100 && savedState.subType) {
                 resumeButtonHTML = "<button onclick='resumeSavedGame()' class='w-full py-4 px-6 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl transition-all border border-amber-500/30 active:scale-95 flex justify-between items-center shadow-lg shadow-amber-900/20'><span>📜 Resume Journey</span><span class='text-xs bg-amber-950/50 px-2 py-1 rounded'>Ch " + savedState.currentChapter + "</span></button>";
             }
 
-            view.innerHTML = "<div class='flex-1 flex flex-col justify-center space-y-6'><div class='text-center space-y-2'><h2 class='text-3xl font-bold text-white tracking-tight'>Isekai Realms</h2><p class='text-slate-400 text-sm'>Cross the dimensional gate into the D&D ruleset.</p></div><div class='flex flex-col space-y-3'>" + resumeButtonHTML + "<button onclick='initClassScreen()' class='w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-center rounded-xl transition-all border border-indigo-500/30 active:scale-95 shadow-lg shadow-indigo-900/20'>✨ Begin New Awakening</button></div></div>";
+            view.innerHTML = "<div class='flex-1 flex flex-col justify-center space-y-6'><div class='text-center space-y-2'><h2 class='text-3xl font-bold text-white tracking-tight'>Isekai Realms</h2><p class='text-indigo-400 font-mono text-xs font-semibold uppercase tracking-wider'>Story By Ray Garza</p><p class='text-slate-400 text-sm pt-1'>Cross the dimensional gate into the D&D ruleset.</p></div><div class='flex flex-col space-y-3'>" + resumeButtonHTML + "<button onclick='initClassScreen()' class='w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-center rounded-xl transition-all border border-indigo-500/30 active:scale-95 shadow-lg shadow-indigo-900/20'>✨ Begin New Awakening</button></div></div>";
         }
 
         function initClassScreen() {
@@ -510,10 +514,43 @@
 
         function renderEndGameScreen() {
             hud.classList.add("hidden");
-            const partner = getRomancePartner();
             const finalScore = gameState.romanceScore;
             localStorage.removeItem("isekai_chronicles_save");
-            view.innerHTML = "<div class='flex-1 flex flex-col justify-center space-y-6'><div class='p-6 border rounded-2xl border-emerald-500/30 bg-emerald-950/20 space-y-4'><h2 class='text-xl font-bold text-center text-white'>Campaign Complete</h2><p class='text-slate-300 text-sm leading-relaxed text-center'>Your journey through the timeline is complete.</p></div><div class='space-y-2 text-center text-xs text-slate-500 font-mono'><p>Final Score: [" + finalScore + "]</p></div><button onclick='resetGame()' class='w-full py-4 bg-indigo-600 hover:bg-indigo-500 font-bold text-white rounded-xl active:scale-95 transition-all'>Return to Gate Hub 🔁</button></div>";
+            
+            let targetEndingMessage = "Your journey through the timeline is complete.";
+            if (finalScore >= 20) {
+                targetEndingMessage = "True Romance Victory achieved! You secured a flawless timeline matrix next to your choice companion vector.";
+            }
+
+            // Closing credits structure injection
+            const closingCreditsHTML = `
+                <div class='p-6 border rounded-2xl border-emerald-500/30 bg-emerald-950/20 space-y-6 text-center shadow-inner'>
+                    <div class='space-y-1'>
+                        <h2 class='text-xl font-bold text-white tracking-tight'>Campaign Complete</h2>
+                        <p class='text-slate-300 text-xs leading-relaxed'>${targetEndingMessage}</p>
+                    </div>
+                    <hr class='border-emerald-500/20'>
+                    <div class='space-y-4 pt-2 text-slate-400 font-mono text-xs'>
+                        <div>
+                            <p class='text-[10px] text-indigo-400 uppercase tracking-widest font-bold'>Story & Programming</p>
+                            <p class='text-sm text-slate-200 font-sans font-semibold pt-0.5'>Ray Garza</p>
+                        </div>
+                        <div class='pt-2 px-2 border border-slate-800/40 bg-slate-950/40 rounded-xl pb-3'>
+                            <p class='text-[9px] text-pink-400 uppercase tracking-widest font-bold pt-1'>Specially Created For</p>
+                            <p class='text-sm text-slate-200 font-sans font-semibold pt-0.5'>Kristen Garza</p>
+                            <p class='text-[11px] font-sans text-slate-400 italic px-2 pt-2 leading-relaxed font-normal'>
+                                "...whose love has always been the strength behind me."
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class='space-y-2 text-center text-xs text-slate-500 font-mono'>
+                    <p>Final Campaign Score: [${finalScore}]</p>
+                </div>
+                <button onclick='resetGame()' class='w-full py-4 bg-indigo-600 hover:bg-indigo-500 font-bold text-white rounded-xl active:scale-95 transition-all shadow-lg shadow-indigo-900/20'>Return to Gate Hub 🔁</button>
+            `;
+
+            view.innerHTML = `<div class='flex-1 flex flex-col justify-center space-y-6'>${closingCreditsHTML}</div>`;
         }
 
         function resetGame() {
