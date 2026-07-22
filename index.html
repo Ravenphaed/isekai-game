@@ -318,6 +318,32 @@
             }
             if (ch === 5) { return { desc: "Safely across the canyon, the trail dips down into a dense, muddy marshland. Deep bubbles gurgle in the black mire nearby. Without warning, a towering swamp horror—a mass of rotted roots and glowing eyes—surges out of the mud!", options: standardCombatOptions }; }
 
+            // Climax Chapter Sequence (Fixed Looping & Custom Transitions)
+            if (ch === 96) {
+                return {
+                    desc: "The heavy obsidian gates of the Apex grind open. The throne room stretches before you, surrounded by rivers of dark elemental energy. " + partner.name + " draws their weapon, keeping pace right beside you. 'This is it, traveler. No more running.'",
+                    options: standardCombatOptions
+                };
+            }
+
+            if (ch === 97) {
+                return {
+                    desc: "The High Demon Lord's Elite Vanguard steps forward from the shadow of the throne! " + partner.name + " locks eyes with you as the inner guardians channel raw blood-magic, sealing the exit behind you. You must break their front line to reach the throne!",
+                    options: [
+                        { text: "⚔️ [Dexterity Check] Coordinate a high-speed double flank with " + partner.name, stat: "dex", romance: 1, textOutcome: "You maneuver behind the vanguard's defense, allowing " + partner.name + " to land a devastating strike!", failRes: "The vanguard's heavy shield deflects your angle, forcing you back." },
+                        { text: "🛡️ [Strength Check] Intercept the lead shadow blade with a crushing parry", stat: "str", romance: 1, textOutcome: "Your weapon locks with theirs in a shower of sparks, breaking their momentum completely!", failRes: "The impact rattles your arms, pushing your footing back into the stone." },
+                        { text: "📜 [Intelligence Check] Identify the mana conduit feeding the vanguard's shields", stat: "int", romance: 1, textOutcome: "You spot the glowing rune on the floor, calling out the target right before " + partner.name + " shatters it!", failRes: "The magic shifts too fast for you to pinpoint the anchor rune." }
+                    ]
+                };
+            }
+
+            if (ch === 98) {
+                return {
+                    desc: "The vanguard crumbles into dark dust! The High Demon Lord rises from the Obsidian Throne, dark energy crackling through the air. The final battle for the realm begins!",
+                    options: standardCombatOptions
+                };
+            }
+
             if (ch === 99) {
                 return {
                     desc: "The High Demon Lord crashes to the floor, turning to ash! However, his dying curse triggers a catastrophic structural collapse of the obsidian throne room. A massive falling stone column is plummeting straight toward an unconscious, exhausted " + partner.name + "! Simultaneously, your phone flashes with a blinding portal signal—your one chance to warp safely back to Earth is active right now.",
@@ -358,7 +384,7 @@
             } else {
                 const combatText = currentAct.combats[ch % currentAct.combats.length];
                 return {
-                    desc: "Danger spikes instantly! Ahead, **" + combatText + "** surges forward out of the shadows with weapons drawn! " + partner.name + " draws steel, backing up your line!",
+                    desc: "Danger spikes instantly! Ahead, <span class='text-amber-400 font-bold'>" + combatText + "</span> surges forward out of the shadows with weapons drawn! " + partner.name + " draws steel, backing up your line!",
                     options: standardCombatOptions
                 };
             }
